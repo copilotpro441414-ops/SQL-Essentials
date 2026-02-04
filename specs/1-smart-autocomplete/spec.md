@@ -212,12 +212,45 @@ The system maintains an in-memory cache of database schema metadata (tables, vie
 - **SC-006**: Users can complete a typical SELECT...JOIN query with 50% fewer keystrokes compared to native SSMS IntelliSense (measured via keystroke logging in user testing).
 - **SC-007**: Zero unhandled exceptions or SSMS crashes during 8-hour continuous usage sessions.
 
+### Non-Functional Requirements
+
+**Observability**
+
+- **NFR-001**: System MUST collect anonymous telemetry including crash reports and performance metrics (completion latency, cache load times).
+- **NFR-002**: System MUST NOT collect query text, table names, or any user data in telemetry.
+- **NFR-003**: System MUST provide an opt-out setting for all telemetry collection.
+- **NFR-004**: System MUST write diagnostic logs to `%APPDATA%\SqlEssentials\logs\` for local troubleshooting.
+
+**Settings & Configuration**
+
+- **NFR-005**: System MUST store all user settings in `%APPDATA%\SqlEssentials\` (roaming profile).
+- **NFR-006**: Settings MUST survive extension reinstalls and SSMS upgrades.
+- **NFR-007**: Settings files MUST be human-readable JSON format.
+
+**Keyboard & Accessibility**
+
+- **NFR-008**: System MUST use SSMS-native keyboard shortcuts by default (Ctrl+Space for autocomplete, Ctrl+K+D for format).
+- **NFR-009**: System MUST allow users to rebind all keyboard shortcuts in settings.
+- **NFR-010**: System MUST detect and warn about shortcut conflicts with other extensions.
+
 ## Assumptions
 
 - SSMS 2016 or later is the target environment (uses VS Shell extensibility model).
 - Users have read access to `sys.tables`, `sys.columns`, `sys.foreign_keys`, and related system views.
 - Metadata caching is scoped per-database; switching databases triggers a new cache load.
 - Initial release targets single-query-window context; cross-window alias tracking is out of scope.
+- Distribution via direct VSIX download (GitHub Releases); VS Marketplace publishing deferred post-MVP.
+- Licensed under MIT; no activation, license keys, or feature gating required.
+
+## Clarifications
+
+### Session 2026-02-04
+
+- Q: What telemetry/error reporting approach should the extension use? → A: Anonymous telemetry — Collect crash reports + performance metrics (no query content), opt-out available.
+- Q: How will the extension be distributed? → A: Direct download — Host VSIX on project website/GitHub releases; manual updates for MVP.
+- Q: Where should settings be persisted? → A: Per-user roaming — Store in %APPDATA%\SqlEssentials\; survives reinstalls, can roam across machines.
+- Q: What licensing model should be used? → A: Free / Open Source — MIT license; all MVP features free; no activation required.
+- Q: How should keyboard shortcut conflicts be handled? → A: SSMS-native bindings — Match SSMS IntelliSense shortcuts (Ctrl+Space, Ctrl+K+D); override if conflict detected.
 
 ## Out of Scope (Future Phases)
 
