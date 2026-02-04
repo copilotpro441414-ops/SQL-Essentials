@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011">
+  <Metadata>
+    <Identity Id="SqlEssentials" Version="0.1.0" Language="en-US" Publisher="SqlEssentials" />
+    <DisplayName>SQL Essentials</DisplayName>
+    <Description>Smart T-SQL autocomplete and productivity tools for SSMS</Description>
+    <Tags>SQL, SSMS, Autocomplete, IntelliSense</Tags>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,18.0)" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName=".NET Framework" Version="[4.8,)" />
+  </Dependencies>
+</PackageManifest>

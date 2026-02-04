@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "SqlEssentials.Extension": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe\""
+    },
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe",
+      "commandLineArgs": "/rootSuffix Exp",
+      "workingDirectory": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\"
+    }
+  }
+}
