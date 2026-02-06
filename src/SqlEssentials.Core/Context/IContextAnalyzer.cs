@@ -4,7 +4,7 @@ namespace SqlEssentials.Core.Context
 {
     public interface IContextAnalyzer
     {
-        IAutocompleteContext Analyze(string queryText, int cursorPosition);
+        IAutocompleteContext Analyze(string queryText, int cursorPosition, string correlationId = null);
 
         IReadOnlyDictionary<string, IAliasBinding> ExtractAliases(string queryText);
 

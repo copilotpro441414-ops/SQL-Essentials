@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using SqlEssentials.Core.Completion;
+using SqlEssentials.Core.Logging;
 using SqlEssentials.Core.Models;
 
 namespace SqlEssentials.Extension.Completion
@@ -21,17 +22,19 @@ namespace SqlEssentials.Extension.Completion
         private const string SuggestionTypeProperty = "SqlEssentials.SuggestionType";
 
         private readonly ICompletionEngine _engine;
+        private readonly ILogger _logger;
         private readonly Func<string> _connectionKeyProvider;
 
-        public SqlCompletionSource(ICompletionEngine engine, Func<string> connectionKeyProvider)
+        public SqlCompletionSource(ICompletionEngine engine, ILogger logger, Func<string> connectionKeyProvider)
         {
             _engine = engine ?? throw new ArgumentNullException(nameof(engine));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _connectionKeyProvider = connectionKeyProvider ?? (() => string.Empty);
         }
 
         public CompletionStartData InitializeCompletion(CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken cancellationToken)
         {
-            WritePerfLog($"InitializeCompletion trigger={trigger.Reason} char={trigger.Character}");
+            _logger.Log(LogLevel.Trace, "CompletionSource", $"InitializeCompletion trigger={trigger.Reason} char={trigger.Character}");
 
             if (trigger.Reason == CompletionTriggerReason.Invoke)
             {
@@ -63,34 +66,40 @@ namespace SqlEssentials.Extension.Completion
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var snapshot = triggerLocation.Snapshot;
-            var queryText = snapshot.GetText();
-            var connectionKey = _connectionKeyProvider();
-
-            var result = await _engine.GetCompletionsAsync(
-                queryText,
-                triggerLocation.Position,
-                connectionKey,
-                MapTrigger(trigger),
-                cancellationToken).ConfigureAwait(false);
-
-            var items = new List<CompletionItem>();
-            foreach (var suggestion in result.Suggestions)
+            var correlationId = Guid.NewGuid().ToString("N").Substring(0, 8);
+            using (var scope = _logger.BeginScope("CompletionSource", "GetCompletionContextAsync", correlationId: correlationId))
             {
-                var item = CreateCompletionItem(suggestion);
-                items.Add(item);
+                var snapshot = triggerLocation.Snapshot;
+                var queryText = snapshot.GetText();
+                var connectionKey = _connectionKeyProvider();
+
+                try
+                {
+                    var result = await _engine.GetCompletionsAsync(
+                        queryText,
+                        triggerLocation.Position,
+                        connectionKey,
+                        MapTrigger(trigger),
+                        correlationId,
+                        cancellationToken).ConfigureAwait(false);
+
+                    var items = new List<CompletionItem>();
+                    foreach (var suggestion in result.Suggestions)
+                    {
+                        var item = CreateCompletionItem(suggestion);
+                        items.Add(item);
+                    }
+
+                    _logger.Log(LogLevel.Info, "CompletionSource", $"GetCompletionContextAsync items={items.Count}", correlationId: correlationId);
+
+                    return new CompletionContext(items.ToImmutableArray());
+                }
+                catch (Exception ex)
+                {
+                    _logger.Log(LogLevel.Error, "CompletionSource", "GetCompletionContextAsync failed", ex, correlationId: correlationId);
+                    throw;
+                }
             }
-
-            stopwatch.Stop();
-            Debug.WriteLine(
-                $"[SqlEssentials] CompletionSource elapsed={stopwatch.ElapsedMilliseconds}ms " +
-                $"items={items.Count} trigger={trigger.Reason}");
-            WritePerfLog(
-                $"CompletionSource elapsed={stopwatch.ElapsedMilliseconds}ms " +
-                $"items={items.Count} trigger={trigger.Reason}");
-
-            return new CompletionContext(items.ToImmutableArray());
         }
 
         public Task<object> GetDescriptionAsync(
@@ -210,25 +219,6 @@ namespace SqlEssentials.Extension.Completion
             }
 
             return TriggerReason.Typing;
-        }
-
-        private static void WritePerfLog(string message)
-        {
-            if (!Debugger.IsAttached)
-            {
-                return;
-            }
-
-            try
-            {
-                var path = Path.Combine(Path.GetTempPath(), "SqlEssentials.perf.log");
-                var line = $"{DateTimeOffset.Now:O} [SqlEssentials] {message}";
-                File.AppendAllText(path, line + Environment.NewLine);
-            }
-            catch
-            {
-                // Best-effort logging only.
-            }
         }
     }
 }

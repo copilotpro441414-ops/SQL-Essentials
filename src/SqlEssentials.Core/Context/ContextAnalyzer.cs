@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
+using SqlEssentials.Core.Logging;
 using SqlEssentials.Core.Models;
 
 namespace SqlEssentials.Core.Context
@@ -9,39 +10,51 @@ namespace SqlEssentials.Core.Context
     public sealed class ContextAnalyzer : IContextAnalyzer
     {
         private readonly TSqlParser _parser;
+        private readonly ILogger _logger;
 
-        public ContextAnalyzer()
+        public ContextAnalyzer(ILogger logger = null)
         {
             _parser = new TSql160Parser(initialQuotedIdentifiers: false);
+            _logger = logger ?? NullLogger.Instance;
         }
 
-        public IAutocompleteContext Analyze(string queryText, int cursorPosition)
+        public IAutocompleteContext Analyze(string queryText, int cursorPosition, string correlationId = null)
         {
             if (queryText == null)
             {
                 throw new ArgumentNullException(nameof(queryText));
             }
 
-            var currentClause = GetClauseAtPosition(queryText, cursorPosition);
-            var aliases = ExtractAliases(queryText);
-            var referencedTables = new List<string>();
-            foreach (var alias in aliases.Values)
+            using (var scope = _logger.BeginScope("ContextAnalyzer", "Analyze", correlationId: correlationId))
             {
-                referencedTables.Add(alias.FullyQualifiedName);
+                var currentClause = GetClauseAtPosition(queryText, cursorPosition);
+                var aliases = ExtractAliases(queryText);
+                var referencedTables = new List<string>();
+                foreach (var alias in aliases.Values)
+                {
+                    referencedTables.Add(alias.FullyQualifiedName);
+                }
+
+                var partialInput = GetPartialInput(queryText, cursorPosition);
+                var qualifierPrefix = GetQualifierPrefix(partialInput);
+
+                _logger.Log(LogLevel.Trace, "ContextAnalyzer", "Analysis complete", properties: new Dictionary<string, object>
+                {
+                    { "clause", currentClause.ToString() },
+                    { "alias_count", aliases.Count },
+                    { "qualifier", qualifierPrefix ?? string.Empty }
+                }, correlationId: correlationId);
+
+                return new AutocompleteContext(
+                    queryText,
+                    cursorPosition,
+                    currentClause,
+                    partialInput,
+                    qualifierPrefix,
+                    aliases,
+                    referencedTables,
+                    TriggerReason.Typing);
             }
-
-            var partialInput = GetPartialInput(queryText, cursorPosition);
-            var qualifierPrefix = GetQualifierPrefix(partialInput);
-
-            return new AutocompleteContext(
-                queryText,
-                cursorPosition,
-                currentClause,
-                partialInput,
-                qualifierPrefix,
-                aliases,
-                referencedTables,
-                TriggerReason.Typing);
         }
 
         public IReadOnlyDictionary<string, IAliasBinding> ExtractAliases(string queryText)

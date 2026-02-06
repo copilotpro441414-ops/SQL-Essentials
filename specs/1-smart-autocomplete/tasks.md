@@ -106,6 +106,27 @@ Based on plan.md structure:
 - [X] T053 Implement suggestion filtering as user types in `SqlCompletionSource` (FR-003)
 - [X] T054 Implement Tab/Enter selection and Escape dismissal in `SqlCompletionSource` (FR-004, FR-005)
 
+### Structured Diagnostic Logging (Cross-Cutting Infrastructure)
+
+**Purpose**: Centralized logging that replaces all ad-hoc Debug.WriteLine/perf.log/ActivityLog calls. Controlled via `SQL_ESSENTIALS_LOG_LEVEL` env var. See `specs/002-structured-logging/spec.md`.
+
+- [ ] T054d [P] Create `LogLevel` enum (Trace, Debug, Info, Warning, Error, Off) in `src/SqlEssentials.Core/Logging/LogLevel.cs`
+- [ ] T054e [P] Create `ILogger` interface in `src/SqlEssentials.Core/Logging/ILogger.cs` with methods: Trace, Debug, Info, Warning, Error, IsEnabled(level), BeginScope
+- [ ] T054f [P] Create `LogScope` disposable class in `src/SqlEssentials.Core/Logging/LogScope.cs` (tracks elapsed time + correlation ID)
+- [ ] T054g [P] Create `NullLogger` (no-op implementation) in `src/SqlEssentials.Core/Logging/NullLogger.cs`
+- [ ] T054h Create `FileLogger` implementation in `src/SqlEssentials.Extension/Logging/FileLogger.cs` — buffered async writes to `%TEMP%\SqlEssentials.<PID>.debug.log`, log rotation at 10 MB
+- [ ] T054i Create `LoggerFactory` in `src/SqlEssentials.Extension/Logging/LoggerFactory.cs` — reads `SQL_ESSENTIALS_LOG_LEVEL` env var, returns FileLogger or NullLogger
+- [ ] T054j Integrate logger into `SqlEssentialsPackage.InitializeAsync` — create logger, log package initialization, pass to all components
+- [ ] T054k Add ILogger parameter to `CompletionEngine` constructor, add logging at: method entry, context analysis result, cache lookup, suggestion count, elapsed time
+- [ ] T054l Add ILogger parameter to `ContextAnalyzer` constructor, add logging at: clause detection, alias extraction, partial input parsing
+- [ ] T054m Add ILogger parameter to `SchemaCache` constructor, add logging at: cache hit/miss, load start/complete, refresh start/complete, expiration, errors
+- [ ] T054n Add ILogger parameter to `SmoMetadataLoader`, add logging at: connection attempt, table/view/column counts loaded, elapsed time
+- [ ] T054o Add logging to `SqlCompletionSource`: trigger type, connection key, fallback items, elapsed time, item count
+- [ ] T054p Add logging to `RefreshSchemaCommand` and `LogContentTypeCommand`: command invoked, result
+- [ ] T054q Remove all existing ad-hoc logging: Debug.WriteLine calls, File.AppendAllText to perf.log, ActivityLog calls — replace with ILogger calls
+- [ ] T054r Add ILogger unit tests in `tests/SqlEssentials.Core.Tests/Logging/` — verify level filtering, NullLogger no-op, LogScope elapsed time
+- [ ] T054s Implement `IDisposable` on `FileLogger` for clean flush/close; wire to package Dispose
+
 **Checkpoint**: Foundational complete - schema cache loads, basic autocomplete popup works, all stories can now proceed independently
 
 ### ⏱️ Performance Validation (Post-Foundational)
@@ -132,6 +153,10 @@ Based on plan.md structure:
 - [X] T058 [US1] Add column data type display in suggestion tooltip
 
 **Checkpoint**: User Story 1 fully functional - `alias.` shows correct columns within 100ms
+
+### Logging Instrumentation for User Story 1
+
+- [ ] T058a [US1] Add Trace-level logging to column-only filter path in `CompletionEngine` — log alias resolved, table matched, column count returned
 
 ---
 
@@ -160,6 +185,11 @@ Based on plan.md structure:
 - [X] T067 [US2] Add Ctrl+Space explicit trigger support in `SqlCompletionSource` (FR-002)
 
 **Checkpoint**: User Story 2 complete - suggestions prioritized by clause context
+
+### Logging Instrumentation for User Story 2
+
+- [ ] T067d [US2] Add Trace-level logging to clause detection in `ClauseDetectionVisitor` — log detected clause type and cursor position
+- [ ] T067e [US2] Add Debug-level logging to clause-based ranking in `CompletionEngine` — log clause bonus applied per suggestion type
 
 ### ⏱️ Performance Validation (Post-MVP)
 
@@ -199,6 +229,10 @@ Based on plan.md structure:
 
 **Checkpoint**: User Story 3 complete - JOIN ON suggestions based on FK/column matching
 
+### Logging Instrumentation for User Story 3
+
+- [ ] T078a [US3] Add Debug-level logging to `JoinPredicateGenerator` — log FK lookup result, column name match fallback, predicate generated
+
 ---
 
 ## Phase 6: User Story 4 - Keyword and Snippet Completion (Priority: P2)
@@ -237,6 +271,11 @@ Based on plan.md structure:
 - [ ] T095 [US4] Integrate snippets as `SuggestionType.Snippet` in completion results
 
 **Checkpoint**: User Story 4 complete - keywords and snippets with placeholder navigation
+
+### Logging Instrumentation for User Story 4
+
+- [ ] T095a [US4] Add Debug-level logging to `SnippetManager` — log snippet load count, custom snippet add/update/remove
+- [ ] T095b [US4] Add Trace-level logging to `SnippetExpander` — log snippet expansion trigger, placeholder navigation
 
 ---
 
@@ -280,6 +319,11 @@ Based on plan.md structure:
 
 **Checkpoint**: User Story 6 complete - Format Document and Format Selection work correctly
 
+### Logging Instrumentation for User Story 6
+
+- [ ] T115a [US6] Add Info-level logging to `FormatDocumentCommand` and `FormatSelectionCommand` — log command invoked, selection range, profile used
+- [ ] T115b [US6] Add Debug-level logging to `SqlFormatter` — log token count processed, formatting elapsed time
+
 ---
 
 ## Phase 8: User Story 7 - Custom Snippet Management (Priority: P3)
@@ -307,6 +351,10 @@ Based on plan.md structure:
 
 **Checkpoint**: User Story 7 complete - custom snippets can be created and managed via settings
 
+### Logging Instrumentation for User Story 7
+
+- [ ] T124a [US7] Add Info-level logging to snippet persistence — log save/reload/import/export operations with snippet count
+
 ---
 
 ## Phase 9: Polish & Cross-Cutting Concerns
@@ -324,8 +372,8 @@ Based on plan.md structure:
 - [ ] T128 [P] Create `ITelemetryService` in `src/SqlEssentials.Core/Telemetry/ITelemetryService.cs` (NFR-001)
 - [ ] T129 [P] Create `TelemetryService` with anonymous metrics in `src/SqlEssentials.Core/Telemetry/TelemetryService.cs`
 - [ ] T130 Implement opt-out setting for telemetry (NFR-003)
-- [ ] T131 [P] Create `ILogger` interface in `src/SqlEssentials.Core/Logging/ILogger.cs`
-- [ ] T132 [P] Create `FileLogger` writing to `%APPDATA%\SqlEssentials\logs\` (NFR-004)
+- [ ] T131 **[DONE via T054e]** ~~Create `ILogger` interface in `src/SqlEssentials.Core/Logging/ILogger.cs`~~ — delivered in Phase 2 structured logging
+- [ ] T132 **[DONE via T054h]** ~~Create `FileLogger` writing to `%APPDATA%\SqlEssentials\logs\`~~ — delivered in Phase 2 structured logging (writes to `%TEMP%`)
 
 ### Keyboard Shortcuts
 

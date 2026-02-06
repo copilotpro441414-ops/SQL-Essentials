@@ -66,12 +66,14 @@ sql-essentials/
 │   │   ├── Completion/               # ICompletionEngine, suggestion ranking
 │   │   ├── Context/                  # IContextAnalyzer, clause detection
 │   │   ├── Formatting/               # ISqlFormatter, visitor-based formatting
+│   │   ├── Logging/                  # ILogger, LogLevel, LogScope (cross-cutting)
 │   │   ├── Metadata/                 # ISchemaCache, SMO wrappers
 │   │   ├── Snippets/                 # ISnippetManager, JSON loader
 │   │   └── Models/                   # Domain entities from data-model.md
 │   └── SqlEssentials.Extension/      # SSMS/VS integration layer
 │       ├── Completion/               # IAsyncCompletionSource adapter
 │       ├── Commands/                 # Format Document, Refresh Schema
+│       ├── Logging/                  # FileLogger implementation, log file management
 │       ├── Options/                  # Settings pages
 │       └── source.extension.vsixmanifest
 ├── tests/
@@ -82,6 +84,12 @@ sql-essentials/
 ```
 
 **Structure Decision**: Single solution with separation between Core library (portable, testable) and Extension host (thin VS/SSMS integration). Follows Constitution Principle II.
+
+## Cross-Cutting: Structured Diagnostic Logging
+
+All components emit structured log entries through a centralized `ILogger` interface (see `specs/002-structured-logging/spec.md`). Logging is controlled via the `SQL_ESSENTIALS_LOG_LEVEL` environment variable (Off by default). The logger writes to `%TEMP%\SqlEssentials.<PID>.debug.log` with ISO 8601 timestamps, component names, log levels, and optional correlation IDs for request tracing.
+
+Every phase in this plan must instrument its components with logging calls. The logger is introduced in Phase 2 (Foundational) and each subsequent phase adds instrumentation to its new components. Existing ad-hoc logging (`Debug.WriteLine`, `File.AppendAllText` to perf.log, `ActivityLog`) is replaced during Phase 2.
 
 ## Complexity Tracking
 

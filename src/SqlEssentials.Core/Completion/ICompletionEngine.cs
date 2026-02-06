@@ -11,6 +11,7 @@ namespace SqlEssentials.Core.Completion
             int cursorPosition,
             string connectionKey,
             TriggerReason trigger,
+            string correlationId = null,
             CancellationToken cancellationToken = default);
     }
 }

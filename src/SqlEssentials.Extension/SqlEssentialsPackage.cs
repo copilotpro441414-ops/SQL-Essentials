@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using SqlEssentials.Core.Completion;
 using SqlEssentials.Core.Context;
+using SqlEssentials.Core.Logging;
 using SqlEssentials.Core.Metadata;
+using SqlEssentials.Extension.Logging;
 
 namespace SqlEssentials.Extension
 {
@@ -15,6 +19,7 @@ namespace SqlEssentials.Extension
     {
         internal static SqlEssentialsPackage Instance { get; private set; }
 
+        internal ILogger Logger { get; private set; }
         internal ISchemaCache SchemaCache { get; private set; }
         internal IContextAnalyzer ContextAnalyzer { get; private set; }
         internal ICompletionEngine CompletionEngine { get; private set; }
@@ -25,11 +30,28 @@ namespace SqlEssentials.Extension
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
             Instance = this;
-            SchemaCache = new SchemaCache(new SmoMetadataLoader());
-            ContextAnalyzer = new ContextAnalyzer();
-            CompletionEngine = new CompletionEngine(ContextAnalyzer, SchemaCache);
+            Logger = LoggerFactory.Create();
+
+            Logger.Log(LogLevel.Info, "Package", "SQL Essentials Initialized", properties: new Dictionary<string, object>
+            {
+                { "version", "0.1.0" },
+                { "pid", Process.GetCurrentProcess().Id }
+            });
+
+            SchemaCache = new SchemaCache(new SmoMetadataLoader(Logger), Logger);
+            ContextAnalyzer = new ContextAnalyzer(Logger);
+            CompletionEngine = new CompletionEngine(ContextAnalyzer, SchemaCache, Logger);
 
             await InitializeConnectionEventsAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                (Logger as IDisposable)?.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
         private Task InitializeConnectionEventsAsync(CancellationToken cancellationToken)
@@ -41,11 +63,21 @@ namespace SqlEssentials.Extension
         {
             if (string.IsNullOrWhiteSpace(connectionKey))
             {
+                Logger.Log(LogLevel.Debug, "Package", "Connection cleared");
                 return;
             }
 
+            Logger.Log(LogLevel.Info, "Package", $"Connection changed to {connectionKey}");
             CurrentConnectionKey = connectionKey;
-            await SchemaCache.GetOrLoadAsync(connectionKey, cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                await SchemaCache.GetOrLoadAsync(connectionKey, null, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Package", $"Failed to load metadata for connection {connectionKey}", ex);
+            }
         }
     }
 }

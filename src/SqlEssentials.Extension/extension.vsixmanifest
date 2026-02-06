@@ -1,0 +1,26 @@
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011">
+  <Metadata>
+    <Identity Id="SqlEssentials" Version="0.1.0" Language="en-US" Publisher="SqlEssentials" />
+    <DisplayName>SQL Essentials</DisplayName>
+    <Description>Smart T-SQL autocomplete and productivity tools for SSMS</Description>
+    <Tags>SQL, SSMS, Autocomplete, IntelliSense</Tags>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName=".NET Framework" Version="[4.8,)" />
+  </Dependencies>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="SqlEssentials.Extension.pkgdef" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="SqlEssentials.Extension.dll" />
+  </Assets>
+</PackageManifest>

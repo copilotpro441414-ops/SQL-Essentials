@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable">
+  <Extern href="stdidcmd.h" />
+  <Extern href="vsshlids.h" />
+
+  <Commands package="guidSqlEssentialsPackage">
+    <Groups>
+      <Group guid="guidSqlEssentialsCmdSet" id="SqlEssentialsGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidSqlEssentialsCmdSet" id="cmdidRefreshSchema" priority="0x0100" type="Button">
+        <Parent guid="guidSqlEssentialsCmdSet" id="SqlEssentialsGroup" />
+        <Strings>
+          <ButtonText>SQL Essentials: Refresh Schema</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidSqlEssentialsCmdSet" id="cmdidLogContentType" priority="0x0101" type="Button">
+        <Parent guid="guidSqlEssentialsCmdSet" id="SqlEssentialsGroup" />
+        <Strings>
+          <ButtonText>SQL Essentials: Log SQL Content Type</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="guidSqlEssentialsPackage" value="{8B8C2B19-7B1F-4B4F-9E8A-2F3B0E0B0E6C}" />
+    <GuidSymbol name="guidSqlEssentialsCmdSet" value="{1D42F4BA-8798-4C2F-9C6B-8A2E9C6B42F1}">
+      <IDSymbol name="SqlEssentialsGroup" value="0x1020" />
+      <IDSymbol name="cmdidRefreshSchema" value="0x0100" />
+      <IDSymbol name="cmdidLogContentType" value="0x0101" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

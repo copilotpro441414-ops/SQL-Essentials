@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SqlEssentials.Core.Context;
+using SqlEssentials.Core.Logging;
 using SqlEssentials.Core.Metadata;
 using SqlEssentials.Core.Models;
 
@@ -15,11 +16,13 @@ namespace SqlEssentials.Core.Completion
     {
         private readonly IContextAnalyzer _contextAnalyzer;
         private readonly ISchemaCache _schemaCache;
+        private readonly ILogger _logger;
 
-        public CompletionEngine(IContextAnalyzer contextAnalyzer, ISchemaCache schemaCache)
+        public CompletionEngine(IContextAnalyzer contextAnalyzer, ISchemaCache schemaCache, ILogger logger = null)
         {
             _contextAnalyzer = contextAnalyzer ?? throw new ArgumentNullException(nameof(contextAnalyzer));
             _schemaCache = schemaCache ?? throw new ArgumentNullException(nameof(schemaCache));
+            _logger = logger ?? NullLogger.Instance;
         }
 
         public async Task<ICompletionResult> GetCompletionsAsync(
@@ -27,48 +30,55 @@ namespace SqlEssentials.Core.Completion
             int cursorPosition,
             string connectionKey,
             TriggerReason trigger,
+            string correlationId = null,
             CancellationToken cancellationToken = default)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var context = _contextAnalyzer.Analyze(queryText, cursorPosition);
-            var cache = await _schemaCache.GetOrLoadAsync(connectionKey, cancellationToken).ConfigureAwait(false);
-
-            var suggestions = new List<ISuggestion>();
-            if (cache != null)
+            using (var scope = _logger.BeginScope("CompletionEngine", "GetCompletions", correlationId: correlationId))
             {
-                if (!string.IsNullOrWhiteSpace(context.QualifierPrefix))
+                try
                 {
-                    var qualifier = context.QualifierPrefix;
-                    var table = ResolveQualifiedTable(context, cache, qualifier);
-                    if (table != null)
+                    var context = _contextAnalyzer.Analyze(queryText, cursorPosition, correlationId);
+                    var cache = await _schemaCache.GetOrLoadAsync(connectionKey, correlationId, cancellationToken).ConfigureAwait(false);
+
+                    var suggestions = new List<ISuggestion>();
+                    if (cache != null)
                     {
-                        suggestions.AddRange(CreateColumnSuggestions(table));
+                        if (!string.IsNullOrWhiteSpace(context.QualifierPrefix))
+                        {
+                            var qualifier = context.QualifierPrefix;
+                            var table = ResolveQualifiedTable(context, cache, qualifier);
+                            if (table != null)
+                            {
+                                suggestions.AddRange(CreateColumnSuggestions(table));
+                            }
+                        }
+                        else
+                        {
+                            suggestions.AddRange(CreateTableSuggestions(cache.Tables, SuggestionType.Table));
+                            suggestions.AddRange(CreateTableSuggestions(cache.Views, SuggestionType.View));
+                            suggestions.AddRange(CreateColumnSuggestions(cache.Tables));
+                            suggestions.AddRange(CreateColumnSuggestions(cache.Views));
+                        }
                     }
+
+                    var typedToken = GetTypedToken(context.PartialInput);
+                    var rankedSuggestions = RankSuggestions(suggestions, context, typedToken);
+                    var applicableSpan = new TextSpan(
+                        Math.Max(0, context.CursorPosition - typedToken.Length),
+                        typedToken.Length);
+
+                    _logger.Log(LogLevel.Info, "CompletionEngine", $"Found {rankedSuggestions.Count} suggestions", 
+                        properties: new Dictionary<string, object> { { "clause", context.CurrentClause.ToString() } },
+                        correlationId: correlationId);
+
+                    return new CompletionResult(rankedSuggestions, applicableSpan, shouldFilter: true, preselectedIndex: -1);
                 }
-                else
+                catch (Exception ex)
                 {
-                    suggestions.AddRange(CreateTableSuggestions(cache.Tables, SuggestionType.Table));
-                    suggestions.AddRange(CreateTableSuggestions(cache.Views, SuggestionType.View));
-                    suggestions.AddRange(CreateColumnSuggestions(cache.Tables));
-                    suggestions.AddRange(CreateColumnSuggestions(cache.Views));
+                    _logger.Log(LogLevel.Error, "CompletionEngine", "GetCompletionsAsync failed", ex, correlationId: correlationId);
+                    throw;
                 }
             }
-
-            var typedToken = GetTypedToken(context.PartialInput);
-            var rankedSuggestions = RankSuggestions(suggestions, context, typedToken);
-            var applicableSpan = new TextSpan(
-                Math.Max(0, context.CursorPosition - typedToken.Length),
-                typedToken.Length);
-
-            stopwatch.Stop();
-            Debug.WriteLine(
-                $"[SqlEssentials] CompletionEngine elapsed={stopwatch.ElapsedMilliseconds}ms " +
-                $"count={rankedSuggestions.Count} clause={context.CurrentClause} trigger={trigger}");
-            WritePerfLog(
-                $"CompletionEngine elapsed={stopwatch.ElapsedMilliseconds}ms " +
-                $"count={rankedSuggestions.Count} clause={context.CurrentClause} trigger={trigger}");
-
-            return new CompletionResult(rankedSuggestions, applicableSpan, shouldFilter: true, preselectedIndex: -1);
         }
 
         private static ITableDefinition ResolveQualifiedTable(IAutocompleteContext context, IDatabaseCache cache, string qualifier)
@@ -208,25 +218,6 @@ namespace SqlEssentials.Core.Completion
                     return type == SuggestionType.Column ? 40 : 0;
                 default:
                     return 0;
-            }
-        }
-
-        private static void WritePerfLog(string message)
-        {
-            if (!Debugger.IsAttached)
-            {
-                return;
-            }
-
-            try
-            {
-                var path = Path.Combine(Path.GetTempPath(), "SqlEssentials.perf.log");
-                var line = $"{DateTimeOffset.Now:O} [SqlEssentials] {message}";
-                File.AppendAllText(path, line + Environment.NewLine);
-            }
-            catch
-            {
-                // Best-effort logging only.
             }
         }
 

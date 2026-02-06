@@ -9,9 +9,9 @@ namespace SqlEssentials.Core.Metadata
     {
         CacheStatus GetStatus(string connectionKey);
 
-        Task<IDatabaseCache> GetOrLoadAsync(string connectionKey, CancellationToken cancellationToken = default);
+        Task<IDatabaseCache> GetOrLoadAsync(string connectionKey, string correlationId = null, CancellationToken cancellationToken = default);
 
-        Task RefreshAsync(string connectionKey, CancellationToken cancellationToken = default);
+        Task RefreshAsync(string connectionKey, string correlationId = null, CancellationToken cancellationToken = default);
 
         void Invalidate(string connectionKey);
 
