@@ -132,28 +132,12 @@ namespace SqlEssentials.Core.Metadata
 
         private bool IsExpired(DatabaseCache cache)
         {
-            return (DateTimeOffset.Now - cache.LoadedAt) > TimeToLive;
+            return (DateTimeOffset.UtcNow - cache.LastRefreshed) > TimeToLive;
         }
 
         private void UpdateStatus(string connectionKey, CacheStatus oldStatus, CacheStatus newStatus)
         {
             StatusChanged?.Invoke(this, new CacheStatusChangedEventArgs(connectionKey, oldStatus, newStatus));
-        }
-    }
-}
-                UpdateStatus(connectionKey, CacheStatus.Loading, CacheStatus.Error, ex);
-                throw;
-            }
-        }
-
-        private bool IsExpired(DatabaseCache cache)
-        {
-            return DateTimeOffset.UtcNow - cache.LastRefreshed > TimeToLive;
-        }
-
-        private void UpdateStatus(string connectionKey, CacheStatus oldStatus, CacheStatus newStatus, Exception error = null)
-        {
-            StatusChanged?.Invoke(this, new CacheStatusChangedEventArgs(connectionKey, oldStatus, newStatus, error));
         }
     }
 }

@@ -13,7 +13,7 @@ namespace SqlEssentials.Extension.Commands
                 return;
             }
 
-            await package.SchemaCache.RefreshAsync(connectionKey, cancellationToken).ConfigureAwait(false);
+            await package.SchemaCache.RefreshAsync(connectionKey, null, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -110,22 +110,22 @@ Based on plan.md structure:
 
 **Purpose**: Centralized logging that replaces all ad-hoc Debug.WriteLine/perf.log/ActivityLog calls. Controlled via `SQL_ESSENTIALS_LOG_LEVEL` env var. See `specs/002-structured-logging/spec.md`.
 
-- [ ] T054d [P] Create `LogLevel` enum (Trace, Debug, Info, Warning, Error, Off) in `src/SqlEssentials.Core/Logging/LogLevel.cs`
-- [ ] T054e [P] Create `ILogger` interface in `src/SqlEssentials.Core/Logging/ILogger.cs` with methods: Trace, Debug, Info, Warning, Error, IsEnabled(level), BeginScope
-- [ ] T054f [P] Create `LogScope` disposable class in `src/SqlEssentials.Core/Logging/LogScope.cs` (tracks elapsed time + correlation ID)
-- [ ] T054g [P] Create `NullLogger` (no-op implementation) in `src/SqlEssentials.Core/Logging/NullLogger.cs`
-- [ ] T054h Create `FileLogger` implementation in `src/SqlEssentials.Extension/Logging/FileLogger.cs` — buffered async writes to `%TEMP%\SqlEssentials.<PID>.debug.log`, log rotation at 10 MB
-- [ ] T054i Create `LoggerFactory` in `src/SqlEssentials.Extension/Logging/LoggerFactory.cs` — reads `SQL_ESSENTIALS_LOG_LEVEL` env var, returns FileLogger or NullLogger
-- [ ] T054j Integrate logger into `SqlEssentialsPackage.InitializeAsync` — create logger, log package initialization, pass to all components
-- [ ] T054k Add ILogger parameter to `CompletionEngine` constructor, add logging at: method entry, context analysis result, cache lookup, suggestion count, elapsed time
-- [ ] T054l Add ILogger parameter to `ContextAnalyzer` constructor, add logging at: clause detection, alias extraction, partial input parsing
-- [ ] T054m Add ILogger parameter to `SchemaCache` constructor, add logging at: cache hit/miss, load start/complete, refresh start/complete, expiration, errors
-- [ ] T054n Add ILogger parameter to `SmoMetadataLoader`, add logging at: connection attempt, table/view/column counts loaded, elapsed time
-- [ ] T054o Add logging to `SqlCompletionSource`: trigger type, connection key, fallback items, elapsed time, item count
-- [ ] T054p Add logging to `RefreshSchemaCommand` and `LogContentTypeCommand`: command invoked, result
-- [ ] T054q Remove all existing ad-hoc logging: Debug.WriteLine calls, File.AppendAllText to perf.log, ActivityLog calls — replace with ILogger calls
+- [X] T054d [P] Create `LogLevel` enum (Trace, Debug, Info, Warning, Error, Off) in `src/SqlEssentials.Core/Logging/LogLevel.cs`
+- [X] T054e [P] Create `ILogger` interface in `src/SqlEssentials.Core/Logging/ILogger.cs` with methods: Trace, Debug, Info, Warning, Error, IsEnabled(level), BeginScope
+- [X] T054f [P] Create `LogScope` disposable class in `src/SqlEssentials.Core/Logging/LogScope.cs` (tracks elapsed time + correlation ID)
+- [X] T054g [P] Create `NullLogger` (no-op implementation) in `src/SqlEssentials.Core/Logging/NullLogger.cs`
+- [X] T054h Create `FileLogger` implementation in `src/SqlEssentials.Extension/Logging/FileLogger.cs` — buffered async writes to `%TEMP%\SqlEssentials.<PID>.debug.log`, log rotation at 10 MB
+- [X] T054i Create `LoggerFactory` in `src/SqlEssentials.Extension/Logging/LoggerFactory.cs` — reads `SQL_ESSENTIALS_LOG_LEVEL` env var, returns FileLogger or NullLogger
+- [X] T054j Integrate logger into `SqlEssentialsPackage.InitializeAsync` — create logger, log package initialization, pass to all components
+- [X] T054k Add ILogger parameter to `CompletionEngine` constructor, add logging at: method entry, context analysis result, cache lookup, suggestion count, elapsed time
+- [X] T054l Add ILogger parameter to `ContextAnalyzer` constructor, add logging at: clause detection, alias extraction, partial input parsing
+- [X] T054m Add ILogger parameter to `SchemaCache` constructor, add logging at: cache hit/miss, load start/complete, refresh start/complete, expiration, errors
+- [X] T054n Add ILogger parameter to `SmoMetadataLoader`, add logging at: connection attempt, table/view/column counts loaded, elapsed time
+- [X] T054o Add logging to `SqlCompletionSource`: trigger type, connection key, fallback items, elapsed time, item count
+- [X] T054p Add logging to `RefreshSchemaCommand` and `LogContentTypeCommand`: command invoked, result
+- [X] T054q Remove all existing ad-hoc logging: Debug.WriteLine calls, File.AppendAllText to perf.log, ActivityLog calls — replace with ILogger calls
 - [ ] T054r Add ILogger unit tests in `tests/SqlEssentials.Core.Tests/Logging/` — verify level filtering, NullLogger no-op, LogScope elapsed time
-- [ ] T054s Implement `IDisposable` on `FileLogger` for clean flush/close; wire to package Dispose
+- [X] T054s Implement `IDisposable` on `FileLogger` for clean flush/close; wire to package Dispose
 
 **Checkpoint**: Foundational complete - schema cache loads, basic autocomplete popup works, all stories can now proceed independently
 
@@ -156,7 +156,7 @@ Based on plan.md structure:
 
 ### Logging Instrumentation for User Story 1
 
-- [ ] T058a [US1] Add Trace-level logging to column-only filter path in `CompletionEngine` — log alias resolved, table matched, column count returned
+- [X] T058a [US1] Add Trace-level logging to column-only filter path in `CompletionEngine` — log alias resolved, table matched, column count returned
 
 ---
 
@@ -188,8 +188,8 @@ Based on plan.md structure:
 
 ### Logging Instrumentation for User Story 2
 
-- [ ] T067d [US2] Add Trace-level logging to clause detection in `ClauseDetectionVisitor` — log detected clause type and cursor position
-- [ ] T067e [US2] Add Debug-level logging to clause-based ranking in `CompletionEngine` — log clause bonus applied per suggestion type
+- [X] T067d [US2] Add Trace-level logging to clause detection in `ClauseDetectionVisitor` — log detected clause type and cursor position
+- [X] T067e [US2] Add Debug-level logging to clause-based ranking in `CompletionEngine` — log clause bonus applied per suggestion type
 
 ### ⏱️ Performance Validation (Post-MVP)
 

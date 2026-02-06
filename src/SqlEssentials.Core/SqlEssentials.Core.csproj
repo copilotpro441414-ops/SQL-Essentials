@@ -7,6 +7,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="161.*" />
     <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="170.*" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 </Project>

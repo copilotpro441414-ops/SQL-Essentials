@@ -1,24 +1,40 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsVsixProject>true</IsVsixProject>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
+    <CreateVsixContainer>true</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+    <VsixOutputPath>$(OutputPath)</VsixOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.*" />
     <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.*" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.*" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="source.extension.vsixmanifest" />
+    <VSCTCompile Include="Commands\SqlEssentials.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <VSIXManifest Include="source.extension.vsixmanifest" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SqlEssentials.Core\SqlEssentials.Core.csproj" />
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <Import Project="$(PkgMicrosoft_VSSDK_BuildTools)\tools\vssdk\Microsoft.VsSDK.targets"
+          Condition="Exists('$(PkgMicrosoft_VSSDK_BuildTools)\tools\vssdk\Microsoft.VsSDK.targets')" />
 </Project>
