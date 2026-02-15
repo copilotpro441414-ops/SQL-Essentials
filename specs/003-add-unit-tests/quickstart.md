@@ -203,7 +203,7 @@ dotnet tool install -g dotnet-stryker
 If Stryker cannot run against the .NET Framework 4.8 project, verify test quality manually:
 
 1. **Mutation 1: Swap prefix bonus sign**
-   - In `SuggestionScoringPolicy.cs`, change `score += prefixBonus` to `score -= prefixBonus`.
+   - In `SuggestionScoringPolicy.cs`, change `score += 50` (the prefix bonus) to `score -= 50`.
    - Run tests — expect at least one failure in `SuggestionScoringPolicyTests.cs`.
    - Revert the change.
 
