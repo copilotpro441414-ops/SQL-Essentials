@@ -268,45 +268,45 @@ Based on plan.md structure:
 
 ### Models for User Story 4
 
-- [ ] T079 [P] [US4] Create `Snippet` model in `src/SqlEssentials.Core/Models/Snippet.cs`
-- [ ] T080 [P] [US4] Create `PlaceholderDefinition` model in `src/SqlEssentials.Core/Models/PlaceholderDefinition.cs`
-- [ ] T081 [P] [US4] Create `SnippetExpansionSession` model in `src/SqlEssentials.Core/Models/SnippetExpansionSession.cs`
-- [ ] T082 [P] [US4] Create `PlaceholderSpan` model in `src/SqlEssentials.Core/Models/PlaceholderSpan.cs`
+- [X] T079 [P] [US4] Create `Snippet` model in `src/SqlEssentials.Core/Models/Snippet.cs`
+- [X] T080 [P] [US4] Create `PlaceholderDefinition` model in `src/SqlEssentials.Core/Models/PlaceholderDefinition.cs`
+- [X] T081 [P] [US4] Create `SnippetExpansionSession` model in `src/SqlEssentials.Core/Models/SnippetExpansionSession.cs`
+- [X] T082 [P] [US4] Create `PlaceholderSpan` model in `src/SqlEssentials.Core/Models/PlaceholderSpan.cs`
 
 ### Snippet Manager Implementation
 
-- [ ] T083 [US4] Create `ISnippetManager` interface in `src/SqlEssentials.Core/Snippets/ISnippetManager.cs` (from contracts/)
-- [ ] T084 [US4] Create `ISnippet` interface in `src/SqlEssentials.Core/Snippets/ISnippet.cs`
-- [ ] T085 [US4] Create `SnippetManager` implementation in `src/SqlEssentials.Core/Snippets/SnippetManager.cs`
-- [ ] T086 [US4] Create `BuiltInSnippets.json` resource in `src/SqlEssentials.Core/Snippets/Resources/BuiltInSnippets.json` (FR-016)
-- [ ] T087 [US4] Implement built-in snippets: SELECT, INSERT, UPDATE, DELETE, CTE, TRY/CATCH in JSON
-- [ ] T088 [US4] Implement snippet loading from embedded JSON resource in `SnippetManager`
+- [X] T083 [US4] Create `ISnippetManager` interface in `src/SqlEssentials.Core/Snippets/ISnippetManager.cs` (from contracts/)
+- [X] T084 [US4] Create `ISnippet` interface in `src/SqlEssentials.Core/Snippets/ISnippet.cs`
+- [X] T085 [US4] Create `SnippetManager` implementation in `src/SqlEssentials.Core/Snippets/SnippetManager.cs`
+- [X] T086 [US4] Create `BuiltInSnippets.json` resource in `src/SqlEssentials.Core/Snippets/Resources/BuiltInSnippets.json` (FR-016)
+- [X] T087 [US4] Implement built-in snippets: SELECT, INSERT, UPDATE, DELETE, CTE, TRY/CATCH in JSON
+- [X] T088 [US4] Implement snippet loading from embedded JSON resource in `SnippetManager`
 
 ### Keyword Provider
 
-- [ ] T089 [US4] Create `KeywordProvider` in `src/SqlEssentials.Core/Completion/KeywordProvider.cs`
-- [ ] T090 [US4] Add T-SQL keyword list (SELECT, FROM, WHERE, JOIN, etc.) to `KeywordProvider`
-- [ ] T091 [US4] Integrate `KeywordProvider` with `CompletionEngine`
+- [X] T089 [US4] Create `KeywordProvider` in `src/SqlEssentials.Core/Completion/KeywordProvider.cs`
+- [X] T090 [US4] Add T-SQL keyword list (SELECT, FROM, WHERE, JOIN, etc.) to `KeywordProvider`
+- [X] T091 [US4] Integrate `KeywordProvider` with `CompletionEngine`
 
 ### Snippet Expansion
 
-- [ ] T092 [US4] Create `SnippetExpander` in `src/SqlEssentials.Extension/Snippets/SnippetExpander.cs`
-- [ ] T093 [US4] Implement placeholder parsing (TextMate-style $1, ${2:default}) in `SnippetExpander`
-- [ ] T094 [US4] Implement Tab navigation between placeholders in `SnippetExpander` (FR-017)
-- [ ] T095 [US4] Integrate snippets as `SuggestionType.Snippet` in completion results
+- [X] T092 [US4] Create `SnippetExpander` in `src/SqlEssentials.Extension/Snippets/SnippetExpander.cs`
+- [X] T093 [US4] Implement placeholder parsing (TextMate-style $1, ${2:default}) in `SnippetExpander`
+- [X] T094 [US4] Implement Tab navigation between placeholders in `SnippetExpander` (FR-017)
+- [X] T095 [US4] Integrate snippets as `SuggestionType.Snippet` in completion results
 
 **Checkpoint**: User Story 4 complete - keywords and snippets with placeholder navigation
 
 ### Logging Instrumentation for User Story 4
 
-- [ ] T095a [US4] Add Debug-level logging to `SnippetManager` — log snippet load count, custom snippet add/update/remove
-- [ ] T095b [US4] Add Trace-level logging to `SnippetExpander` — log snippet expansion trigger, placeholder navigation
+- [X] T095a [US4] Add Debug-level logging to `SnippetManager` — log snippet load count, custom snippet add/update/remove
+- [X] T095b [US4] Add Trace-level logging to `SnippetExpander` — log snippet expansion trigger, placeholder navigation
 
 ### Test Coverage for User Story 4 (Normal + Odd Cases)
 
-- [ ] T095c [P] [US4] Add keyword/snippet happy-path tests (shortcut match, snippet insertion, placeholder tab order) in `tests/SqlEssentials.Core.Tests/Completion/KeywordAndSnippetTests.cs`
-- [ ] T095d [P] [US4] Add odd-case tests (invalid placeholder syntax, missing snippet body, ambiguous shortcut collisions) in `tests/SqlEssentials.Core.Tests/Completion/KeywordAndSnippetTests.cs`
-- [ ] T095e [US4] Run US4-focused tests and verify all normal/odd scenarios pass before phase sign-off, then run post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`)
+- [X] T095c [P] [US4] Add keyword/snippet happy-path tests (shortcut match, snippet insertion, placeholder tab order) in `tests/SqlEssentials.Core.Tests/Completion/KeywordAndSnippetTests.cs`
+- [X] T095d [P] [US4] Add odd-case tests (invalid placeholder syntax, missing snippet body, ambiguous shortcut collisions) in `tests/SqlEssentials.Core.Tests/Completion/KeywordAndSnippetTests.cs`
+- [X] T095e [US4] Run US4-focused tests and verify all normal/odd scenarios pass before phase sign-off, then run post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`)
 
 ---
 

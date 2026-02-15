@@ -9,4 +9,8 @@
     <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="170.*" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Snippets\Resources\BuiltInSnippets.json" />
+  </ItemGroup>
 </Project>

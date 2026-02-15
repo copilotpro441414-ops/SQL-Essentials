@@ -9,6 +9,7 @@ using SqlEssentials.Core.Context;
 using SqlEssentials.Core.Logging;
 using SqlEssentials.Core.Metadata;
 using SqlEssentials.Core.Models;
+using SqlEssentials.Core.Snippets;
 
 namespace SqlEssentials.Core.Completion
 {
@@ -19,19 +20,25 @@ namespace SqlEssentials.Core.Completion
         private readonly ILogger _logger;
         private readonly SuggestionScoringPolicy _scoringPolicy;
         private readonly JoinPredicateGenerator _joinPredicateGenerator;
+        private readonly KeywordProvider _keywordProvider;
+        private readonly ISnippetManager _snippetManager;
 
         public CompletionEngine(
             IContextAnalyzer contextAnalyzer,
             ISchemaCache schemaCache,
             ILogger logger = null,
             SuggestionScoringPolicy scoringPolicy = null,
-            JoinPredicateGenerator joinPredicateGenerator = null)
+            JoinPredicateGenerator joinPredicateGenerator = null,
+            KeywordProvider keywordProvider = null,
+            ISnippetManager snippetManager = null)
         {
             _contextAnalyzer = contextAnalyzer ?? throw new ArgumentNullException(nameof(contextAnalyzer));
             _schemaCache = schemaCache ?? throw new ArgumentNullException(nameof(schemaCache));
             _logger = logger ?? NullLogger.Instance;
             _scoringPolicy = scoringPolicy ?? new SuggestionScoringPolicy();
             _joinPredicateGenerator = joinPredicateGenerator ?? new JoinPredicateGenerator(_logger);
+            _keywordProvider = keywordProvider ?? new KeywordProvider();
+            _snippetManager = snippetManager ?? new SnippetManager(_logger);
         }
 
         public async Task<ICompletionResult> GetCompletionsAsync(
@@ -70,6 +77,8 @@ namespace SqlEssentials.Core.Completion
                     }, correlationId: correlationId);
 
                     var suggestions = new List<ISuggestion>();
+                    var typedToken = GetTypedToken(context.PartialInput);
+
                     if (cache != null)
                     {
                         if (context.CurrentClause == ClauseType.On && context.JoinContext != null)
@@ -107,10 +116,15 @@ namespace SqlEssentials.Core.Completion
                             suggestions.AddRange(CreateTableSuggestions(cache.Views, SuggestionType.View));
                             suggestions.AddRange(CreateColumnSuggestions(cache.Tables));
                             suggestions.AddRange(CreateColumnSuggestions(cache.Views));
+
+                            if (context.CurrentClause != ClauseType.On && !string.IsNullOrWhiteSpace(typedToken) && typedToken.Length >= 3)
+                            {
+                                suggestions.AddRange(_keywordProvider.GetSuggestions(typedToken));
+                                suggestions.AddRange(CreateSnippetSuggestions(_snippetManager.FindByPrefix(typedToken)));
+                            }
                         }
                     }
 
-                    var typedToken = GetTypedToken(context.PartialInput);
                     var rankedSuggestions = RankSuggestions(suggestions, context, typedToken, correlationId);
                     var applicableSpan = new TextSpan(
                         Math.Max(0, context.CursorPosition - typedToken.Length),
@@ -223,6 +237,27 @@ namespace SqlEssentials.Core.Completion
             return columns
                 .OrderByDescending(column => column.IsPrimaryKey)
                 .ThenBy(column => column.Name, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static IEnumerable<ISuggestion> CreateSnippetSuggestions(IEnumerable<ISnippet> snippets)
+        {
+            if (snippets == null)
+            {
+                yield break;
+            }
+
+            foreach (var snippet in snippets)
+            {
+                yield return new Suggestion(
+                    snippet.Shortcut,
+                    snippet.ExpandedBody,
+                    SuggestionType.Snippet,
+                    string.IsNullOrWhiteSpace(snippet.Description) ? snippet.Name : snippet.Description,
+                    string.Empty,
+                    relevanceScore: 0,
+                    filterText: snippet.Shortcut,
+                    sortText: snippet.Shortcut);
+            }
         }
 
         private IReadOnlyList<ISuggestion> RankSuggestions(

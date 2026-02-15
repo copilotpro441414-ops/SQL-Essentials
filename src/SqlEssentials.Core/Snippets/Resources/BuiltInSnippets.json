@@ -1,0 +1,97 @@
+{
+  "snippets": [
+    {
+      "shortcut": "sel",
+      "name": "SELECT",
+      "description": "Basic SELECT query",
+      "category": "DML",
+      "body": [
+        "SELECT ${1:*}",
+        "FROM ${2:dbo.TableName}"
+      ],
+      "placeholders": {
+        "1": { "default": "*", "description": "Columns" },
+        "2": { "default": "dbo.TableName", "description": "Source table" }
+      }
+    },
+    {
+      "shortcut": "ins",
+      "name": "INSERT",
+      "description": "INSERT statement",
+      "category": "DML",
+      "body": [
+        "INSERT INTO ${1:dbo.TableName} (${2:Column1, Column2})",
+        "VALUES (${3:Value1, Value2});"
+      ],
+      "placeholders": {
+        "1": { "default": "dbo.TableName", "description": "Target table" },
+        "2": { "default": "Column1, Column2", "description": "Columns" },
+        "3": { "default": "Value1, Value2", "description": "Values" }
+      }
+    },
+    {
+      "shortcut": "upd",
+      "name": "UPDATE",
+      "description": "UPDATE statement",
+      "category": "DML",
+      "body": [
+        "UPDATE ${1:dbo.TableName}",
+        "SET ${2:Column1 = Value1}",
+        "WHERE ${3:Condition};"
+      ],
+      "placeholders": {
+        "1": { "default": "dbo.TableName", "description": "Target table" },
+        "2": { "default": "Column1 = Value1", "description": "Assignments" },
+        "3": { "default": "Condition", "description": "Predicate" }
+      }
+    },
+    {
+      "shortcut": "del",
+      "name": "DELETE",
+      "description": "DELETE statement",
+      "category": "DML",
+      "body": [
+        "DELETE FROM ${1:dbo.TableName}",
+        "WHERE ${2:Condition};"
+      ],
+      "placeholders": {
+        "1": { "default": "dbo.TableName", "description": "Target table" },
+        "2": { "default": "Condition", "description": "Predicate" }
+      }
+    },
+    {
+      "shortcut": "cte",
+      "name": "Common Table Expression",
+      "description": "CTE template",
+      "category": "Query",
+      "body": [
+        "WITH ${1:CteName} AS (",
+        "    ${2:SELECT * FROM dbo.TableName}",
+        ")",
+        "SELECT *",
+        "FROM ${1:CteName};"
+      ],
+      "placeholders": {
+        "1": { "default": "CteName", "description": "CTE name" },
+        "2": { "default": "SELECT * FROM dbo.TableName", "description": "CTE query" }
+      }
+    },
+    {
+      "shortcut": "tryc",
+      "name": "TRY/CATCH",
+      "description": "TRY CATCH error handling block",
+      "category": "Flow",
+      "body": [
+        "BEGIN TRY",
+        "    ${1:-- your statement}",
+        "END TRY",
+        "BEGIN CATCH",
+        "    SELECT ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;",
+        "END CATCH;"
+      ],
+      "placeholders": {
+        "1": { "default": "-- your statement", "description": "Protected statement" }
+      }
+    }
+  ]
+}
