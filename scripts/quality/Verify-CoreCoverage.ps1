@@ -67,7 +67,7 @@ if ($CoverageReportPath -eq "") {
         "test", $testProject,
         "--settings", $runSettings,
         "--results-directory", $TestResultsDir,
-        "--collect:XPlat Code Coverage"
+        '--collect:XPlat Code Coverage'
     )
 
     if ($NoBuild) {
