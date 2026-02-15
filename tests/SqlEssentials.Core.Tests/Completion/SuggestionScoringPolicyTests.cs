@@ -10,9 +10,12 @@ namespace SqlEssentials.Core.Tests.Completion
 {
     /// <summary>
     /// Tests for suggestion scoring policy, including prefix matching, clause bonuses, and relevance ordering.
+    /// Tests the extracted SuggestionScoringPolicy component directly.
     /// </summary>
     public sealed class SuggestionScoringPolicyTests
     {
+        private readonly SuggestionScoringPolicy _policy = new SuggestionScoringPolicy();
+
         [Fact]
         public void PrefixMatch_IncreasesScore()
         {
@@ -22,12 +25,13 @@ namespace SqlEssentials.Core.Tests.Completion
             var typedToken = "Use";
 
             // Act
-            var score1 = CalculateScore(suggestion1, ClauseType.Select, typedToken);
-            var score2 = CalculateScore(suggestion2, ClauseType.Select, typedToken);
+            var score1 = _policy.CalculateScore(suggestion1, ClauseType.Select, typedToken);
+            var score2 = _policy.CalculateScore(suggestion2, ClauseType.Select, typedToken);
 
             // Assert
             Assert.True(score1 > 0, "Prefix match should increase score");
             Assert.True(score2 > 0, "Prefix match should increase score");
+            Assert.Equal(50, score1 - suggestion1.RelevanceScore - _policy.GetClauseBonus(SuggestionType.Column, ClauseType.Select));
         }
 
         [Fact]
@@ -38,8 +42,8 @@ namespace SqlEssentials.Core.Tests.Completion
             var columnSuggestion = CreateSuggestion("UserId", SuggestionType.Column);
 
             // Act
-            var tableScore = CalculateScore(tableSuggestion, ClauseType.From, string.Empty);
-            var columnScore = CalculateScore(columnSuggestion, ClauseType.From, string.Empty);
+            var tableScore = _policy.CalculateScore(tableSuggestion, ClauseType.From, string.Empty);
+            var columnScore = _policy.CalculateScore(columnSuggestion, ClauseType.From, string.Empty);
 
             // Assert
             Assert.True(tableScore > columnScore, "Tables should rank higher than columns in FROM clause");
@@ -53,8 +57,8 @@ namespace SqlEssentials.Core.Tests.Completion
             var columnSuggestion = CreateSuggestion("UserId", SuggestionType.Column);
 
             // Act
-            var tableScore = CalculateScore(tableSuggestion, ClauseType.Select, string.Empty);
-            var columnScore = CalculateScore(columnSuggestion, ClauseType.Select, string.Empty);
+            var tableScore = _policy.CalculateScore(tableSuggestion, ClauseType.Select, string.Empty);
+            var columnScore = _policy.CalculateScore(columnSuggestion, ClauseType.Select, string.Empty);
 
             // Assert
             Assert.True(columnScore > tableScore, "Columns should rank higher than tables in SELECT clause");
@@ -68,39 +72,94 @@ namespace SqlEssentials.Core.Tests.Completion
             var regularColumn = CreateSuggestion("Name", SuggestionType.Column, relevanceScore: 0);
 
             // Act
-            var pkScore = CalculateScore(pkColumn, ClauseType.Select, string.Empty);
-            var regularScore = CalculateScore(regularColumn, ClauseType.Select, string.Empty);
+            var pkScore = _policy.CalculateScore(pkColumn, ClauseType.Select, string.Empty);
+            var regularScore = _policy.CalculateScore(regularColumn, ClauseType.Select, string.Empty);
 
             // Assert
             Assert.True(pkScore > regularScore, "Primary key columns should have higher relevance");
+            Assert.Equal(20, pkScore - regularScore);
         }
 
         [Theory]
-        [InlineData(ClauseType.Select, SuggestionType.Column, true)]
-        [InlineData(ClauseType.Where, SuggestionType.Column, true)]
-        [InlineData(ClauseType.GroupBy, SuggestionType.Column, true)]
-        [InlineData(ClauseType.OrderBy, SuggestionType.Column, true)]
-        [InlineData(ClauseType.From, SuggestionType.Table, true)]
-        [InlineData(ClauseType.Join, SuggestionType.Table, true)]
-        [InlineData(ClauseType.From, SuggestionType.Column, false)]
-        [InlineData(ClauseType.Select, SuggestionType.Table, false)]
-        public void ClauseBonus_AppliesCorrectly(ClauseType clause, SuggestionType type, bool shouldHaveBonus)
+        [InlineData(ClauseType.Select, SuggestionType.Column, 40)]
+        [InlineData(ClauseType.Where, SuggestionType.Column, 40)]
+        [InlineData(ClauseType.GroupBy, SuggestionType.Column, 40)]
+        [InlineData(ClauseType.OrderBy, SuggestionType.Column, 40)]
+        [InlineData(ClauseType.On, SuggestionType.Column, 40)]
+        [InlineData(ClauseType.Having, SuggestionType.Column, 40)]
+        [InlineData(ClauseType.From, SuggestionType.Table, 40)]
+        [InlineData(ClauseType.Join, SuggestionType.Table, 40)]
+        [InlineData(ClauseType.From, SuggestionType.View, 40)]
+        [InlineData(ClauseType.Join, SuggestionType.View, 40)]
+        [InlineData(ClauseType.From, SuggestionType.Column, 0)]
+        [InlineData(ClauseType.Select, SuggestionType.Table, 0)]
+        [InlineData(ClauseType.Unknown, SuggestionType.Column, 0)]
+        [InlineData(ClauseType.Unknown, SuggestionType.Table, 0)]
+        public void GetClauseBonus_ReturnsCorrectValue(ClauseType clause, SuggestionType type, int expectedBonus)
         {
-            // Arrange
-            var suggestion = CreateSuggestion("Test", type);
-
             // Act
-            var score = CalculateScore(suggestion, clause, string.Empty);
+            var bonus = _policy.GetClauseBonus(type, clause);
 
             // Assert
-            if (shouldHaveBonus)
-            {
-                Assert.True(score > 0, $"Should have clause bonus for {type} in {clause}");
-            }
+            Assert.Equal(expectedBonus, bonus);
         }
 
-        // Helper methods to simulate the current scoring logic
-        // These will be replaced when we extract SuggestionScoringPolicy
+        [Fact]
+        public void CalculateScore_NullSuggestion_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() =>
+                _policy.CalculateScore(null, ClauseType.Select, "test"));
+        }
+
+        [Fact]
+        public void CalculateScore_CombinesAllComponents()
+        {
+            // Arrange
+            var suggestion = CreateSuggestion("UserId", SuggestionType.Column, relevanceScore: 20);
+            var typedToken = "Use";
+
+            // Act
+            var score = _policy.CalculateScore(suggestion, ClauseType.Select, typedToken);
+
+            // Assert
+            // Score should be: 20 (base) + 40 (clause bonus) + 50 (prefix match) = 110
+            Assert.Equal(110, score);
+        }
+
+        [Fact]
+        public void PrefixMatch_CaseInsensitive()
+        {
+            // Arrange
+            var suggestion = CreateSuggestion("UserId", SuggestionType.Column);
+
+            // Act
+            var scoreUpper = _policy.CalculateScore(suggestion, ClauseType.Select, "USE");
+            var scoreLower = _policy.CalculateScore(suggestion, ClauseType.Select, "use");
+            var scoreMixed = _policy.CalculateScore(suggestion, ClauseType.Select, "UsE");
+
+            // Assert
+            Assert.Equal(scoreUpper, scoreLower);
+            Assert.Equal(scoreUpper, scoreMixed);
+            Assert.True(scoreUpper > 0);
+        }
+
+        [Fact]
+        public void PrefixMatch_EmptyToken_NoBonus()
+        {
+            // Arrange
+            var suggestion = CreateSuggestion("UserId", SuggestionType.Column);
+
+            // Act
+            var scoreWithEmpty = _policy.CalculateScore(suggestion, ClauseType.Select, string.Empty);
+            var scoreWithNull = _policy.CalculateScore(suggestion, ClauseType.Select, null);
+
+            // Assert - should only have clause bonus, no prefix match bonus
+            Assert.Equal(40, scoreWithEmpty);
+            Assert.Equal(40, scoreWithNull);
+        }
+
+        // Helper method to create test suggestions
         private static ISuggestion CreateSuggestion(string displayText, SuggestionType type, int relevanceScore = 0)
         {
             return new Suggestion(
@@ -112,39 +171,6 @@ namespace SqlEssentials.Core.Tests.Completion
                 relevanceScore,
                 displayText,
                 displayText);
-        }
-
-        private static int CalculateScore(ISuggestion suggestion, ClauseType clause, string typedToken)
-        {
-            var score = suggestion.RelevanceScore;
-            score += GetClauseBonus(suggestion.Type, clause);
-
-            if (!string.IsNullOrEmpty(typedToken) &&
-                suggestion.DisplayText.StartsWith(typedToken, StringComparison.OrdinalIgnoreCase))
-            {
-                score += 50;
-            }
-
-            return score;
-        }
-
-        private static int GetClauseBonus(SuggestionType type, ClauseType clause)
-        {
-            switch (clause)
-            {
-                case ClauseType.From:
-                case ClauseType.Join:
-                    return type == SuggestionType.Table || type == SuggestionType.View ? 40 : 0;
-                case ClauseType.Select:
-                case ClauseType.Where:
-                case ClauseType.On:
-                case ClauseType.GroupBy:
-                case ClauseType.OrderBy:
-                case ClauseType.Having:
-                    return type == SuggestionType.Column ? 40 : 0;
-                default:
-                    return 0;
-            }
         }
     }
 }
