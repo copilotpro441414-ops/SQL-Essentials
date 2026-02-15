@@ -148,12 +148,126 @@ public sealed class CompletionClausePriorityTests
   2. Advance virtual clock by less than TTL and assert cache hit.
   3. Advance beyond TTL and assert stale-while-refresh behavior.
 
-## Success Metrics Verification (85% High-Risk Coverage)
+## Success Metrics Verification (Differentiated Coverage Gates)
 
 - Define high-risk modules: Completion, Context, Metadata Cache, Logging.
 - Collect line + branch coverage per module.
-- Gate rules:
-    - Each high-risk module coverage >= 85% line and >= 85% branch.
+- Gate rules (differentiated by module risk profile):
+  - **Completion**: line >= 85%, branch >= 85% (pure logic, high user impact).
+  - **Context**: line >= 85%, branch >= 85% (pure logic, high user impact).
+  - **Metadata**: line >= 75%, branch >= 70% (infrastructure boundary, some paths integration-only).
+  - **Logging**: line >= 75%, branch >= 70% (thin wrappers, diminishing returns past 75%).
   - Full unit test runtime <= 90s.
   - Mandatory regression tests pass for clause prioritization, alias qualification, cache transitions, and null logger behavior.
-- CI gate fails if any module drops below threshold or runtime exceeds budget.
+- CI gate fails if any module drops below its threshold or runtime exceeds budget.
+
+### Running Coverage Gates
+
+```powershell
+# Auto-discover latest coverage report
+pwsh .\scripts\quality\Verify-CoreCoverage.ps1
+
+# Use a specific report file
+pwsh .\scripts\quality\Verify-CoreCoverage.ps1 -CoverageReportPath .\TestResults\abc\coverage.cobertura.xml
+
+# Advisory mode (no exit-code failure)
+pwsh .\scripts\quality\Verify-CoreCoverage.ps1 -FailOnViolation $false
+```
+
+## Mutation Testing (Scoring Policy Spot-Check)
+
+### Why Mutation Testing?
+
+Code coverage measures execution, not fault detection. A test suite can achieve 100% line coverage
+with weak assertions (`Assert.True(true)`) and still miss real bugs. Mutation testing introduces
+small logic changes (mutations) into the code and checks that at least one test catches each
+mutation. A high mutation score proves your tests have meaningful assertions.
+
+### Scope
+
+Only `SuggestionScoringPolicy.cs` is targeted — this is the single most user-visible ranking
+component. If its tests don't catch mutations in scoring logic, coverage is a false signal.
+
+### Running the Spot-Check
+
+```powershell
+# Run with Stryker.NET (if installed)
+pwsh .\scripts\quality\Run-MutationSpotCheck.ps1
+
+# Install Stryker.NET (one-time)
+dotnet tool install -g dotnet-stryker
+```
+
+### Manual Fallback (if Stryker is unavailable for .NET Framework 4.8)
+
+If Stryker cannot run against the .NET Framework 4.8 project, verify test quality manually:
+
+1. **Mutation 1: Swap prefix bonus sign**
+   - In `SuggestionScoringPolicy.cs`, change `score += prefixBonus` to `score -= prefixBonus`.
+   - Run tests — expect at least one failure in `SuggestionScoringPolicyTests.cs`.
+   - Revert the change.
+
+2. **Mutation 2: Swap a comparison operator**
+   - Change a `>` to `<` in a bonus condition check.
+   - Run tests — expect at least one failure.
+   - Revert the change.
+
+3. **Mutation 3: Remove a clause bonus**
+   - Delete an entire clause bonus case arm (e.g., the FROM clause bonus).
+   - Run tests — expect at least one failure.
+   - Revert the change.
+
+If all 3 mutations cause test failures, scoring tests have adequate fault detection.
+
+## Test Runtime Budget
+
+### Why a Runtime Budget?
+
+Test suites silently degrade over time as new tests are added. A hard gate prevents the "boiling
+frog" effect where cumulative slowdown makes the suite impractical for developer workflow.
+
+### Current Budget
+
+- **90 seconds** for the full `SqlEssentials.Core.Tests` suite on a standard developer machine.
+
+### Running the Budget Check
+
+```powershell
+# Standard check (90s budget)
+pwsh .\scripts\quality\Verify-TestRuntime.ps1
+
+# Custom budget
+pwsh .\scripts\quality\Verify-TestRuntime.ps1 -MaxSeconds 120
+
+# Skip rebuild (faster if already built)
+pwsh .\scripts\quality\Verify-TestRuntime.ps1 -NoBuild
+```
+
+### What to Do if the Budget is Exceeded
+
+1. **Profile slow tests**: `dotnet test --logger "console;verbosity=detailed"`
+2. **Move expensive setup to shared fixtures** — look for tests creating heavy objects repeatedly.
+3. **Replace real I/O with fakes** — look for any `Task.Delay` or file system access.
+4. **Split categories** — if integration tests are added later, separate fast/slow runs.
+
+## Full Quality Gate Verification Sequence
+
+Run all gates together after implementation changes:
+
+```powershell
+# Step 1: Build and run tests with coverage
+dotnet test .\tests\SqlEssentials.Core.Tests\SqlEssentials.Core.Tests.csproj `
+  --settings .\tests\SqlEssentials.Core.Tests\coverage.runsettings `
+  --collect:"XPlat Code Coverage"
+
+# Step 2: Verify per-module coverage gates
+pwsh .\scripts\quality\Verify-CoreCoverage.ps1
+
+# Step 3: Mutation spot-check on scoring policy
+pwsh .\scripts\quality\Run-MutationSpotCheck.ps1
+
+# Step 4: Verify runtime budget
+pwsh .\scripts\quality\Verify-TestRuntime.ps1 -NoBuild
+
+# All four passing = quality gates satisfied
+```

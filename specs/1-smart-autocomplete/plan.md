@@ -91,6 +91,21 @@ All components emit structured log entries through a centralized `ILogger` inter
 
 Every phase in this plan must instrument its components with logging calls. The logger is introduced in Phase 2 (Foundational) and each subsequent phase adds instrumentation to its new components. Existing ad-hoc logging (`Debug.WriteLine`, `File.AppendAllText` to perf.log, `ActivityLog`) is replaced during Phase 2.
 
+## Cross-Cutting: Unit Test Hardening (Phase 5)
+
+A dedicated testing phase (`specs/003-add-unit-tests/`) is inserted before JOIN/snippet/formatting phases. This phase:
+
+- Adds deterministic regression tests for all Phase 1-4 core behavior (completion, context, metadata cache, logging).
+- Implements two testability splits: `SuggestionScoringPolicy` and `ClauseClassifier`.
+- Enforces differentiated per-module coverage gates:
+  - **Completion / Context**: >= 85% line, >= 85% branch (pure logic, high user impact).
+  - **Metadata / Logging**: >= 75% line, >= 70% branch (infrastructure boundaries).
+- Adds mutation testing spot-check for `SuggestionScoringPolicy` (Stryker.NET or manual fallback).
+- Adds test runtime budget enforcement (< 90 seconds).
+- Quality gate scripts: `scripts/quality/Verify-CoreCoverage.ps1`, `scripts/quality/Run-MutationSpotCheck.ps1`, `scripts/quality/Verify-TestRuntime.ps1`.
+
+See `specs/003-add-unit-tests/plan.md` and `specs/003-add-unit-tests/tasks.md` for full details.
+
 ## Complexity Tracking
 
 > No violations to justify — all Constitution principles satisfied.

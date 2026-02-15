@@ -85,7 +85,7 @@ As a project owner, I need a clear plan for introducing tests without blocking t
 - **FR-011**: Unit-test implementation MUST be delivered on a dedicated branch and merged into the active feature branch only after tests are consistently passing.
 - **FR-012**: Task tracking MUST be updated to include explicit test tasks, ownership, and completion criteria aligned to each covered component.
 - **FR-013**: The test strategy MUST define a minimum per-component baseline covering happy path, invalid input, and failure-mode behavior.
-- **FR-013a**: The test strategy MUST enforce per-module coverage gates for each high-risk module (`Completion`, `Context`, `Metadata`, `Logging`) with both line coverage and branch coverage >= 85%.
+- **FR-013a**: The test strategy MUST enforce differentiated per-module coverage gates: `Completion` and `Context` with line and branch >= 85%; `Metadata` with line >= 75% and branch >= 70%; `Logging` with line >= 75% and branch >= 70%.
 - **FR-014**: Where behavior cannot be isolated cleanly, the plan MUST identify refactoring candidates that split logic into smaller testable units without changing user-visible behavior.
 - **FR-015**: This phase MUST implement exactly two testability splits: `Suggestion Scoring Policy` and `Clause Detection Adapter`.
 - **FR-016**: Remaining split candidates (`Token and Qualifier Parsing`, `Cache Freshness Policy`, `Status Transition Dispatcher`) MUST be documented as deferred and MUST NOT block this phase.
@@ -151,7 +151,7 @@ As a project owner, I need a clear plan for introducing tests without blocking t
 
 ### Measurable Outcomes
 
-- **SC-001**: Each high-risk module (`Completion`, `Context`, `Metadata`, `Logging`) achieves >= 85% line coverage and >= 85% branch coverage.
+- **SC-001**: Each high-risk module achieves its coverage gate: `Completion` and `Context` >= 85% line and >= 85% branch; `Metadata` >= 75% line and >= 70% branch; `Logging` >= 75% line and >= 70% branch.
 - **SC-002**: 100% of identified regression-critical behaviors (clause prioritization, alias-qualified completion, cache lifecycle states, null logger behavior) have at least one passing unit test each.
 - **SC-003**: The full unit-test suite completes in under 90 seconds on a standard developer machine.
 - **SC-004**: For two consecutive merge attempts, no regression defects are reported in the previously delivered phase 1-4 behaviors after integrating test changes.

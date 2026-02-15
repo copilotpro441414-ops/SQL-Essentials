@@ -5,7 +5,11 @@
 
 ## Summary
 
-Add a dedicated pre-Phase-5 testing phase for `SqlEssentials.Core` only, focusing on deterministic regression protection for delivered Phase 1-4 behaviors. This phase introduces two required testability splits (Scoring Policy and Clause Detection Adapter), adds table-driven tests for completion behavior, validates metadata cache and logging infrastructure, and enforces per-module coverage gates of >=85% line and >=85% branch for `Completion`, `Context`, `Metadata`, and `Logging`.
+Add a dedicated pre-Phase-5 testing phase for `SqlEssentials.Core` only, focusing on deterministic regression protection for delivered Phase 1-4 behaviors. This phase introduces two required testability splits (Scoring Policy and Clause Detection Adapter), adds table-driven tests for completion behavior, validates metadata cache and logging infrastructure, and enforces differentiated per-module coverage gates:
+- `Completion` and `Context`: >=85% line and >=85% branch (pure logic, high user impact)
+- `Metadata` and `Logging`: >=75% line and >=70% branch (infrastructure boundaries)
+
+Additionally, the phase includes mutation testing (scoring policy spot-check) and test runtime budget enforcement (<90 seconds).
 
 ## Technical Context
 
@@ -87,10 +91,13 @@ tests/
   Cover level filtering semantics, null logger no-op behavior, and scope elapsed-time behavior.
 
 6. **Task 6: Enforce Coverage and Runtime Gates**  
-  Require per-module >=85% line + >=85% branch coverage for high-risk modules and total test runtime <90 seconds.
+  Require differentiated per-module coverage (Completion/Context >=85% line+branch; Metadata >=75/70%; Logging >=75/70%) and total test runtime <90 seconds. Add mutation testing spot-check for SuggestionScoringPolicy.
 
 7. **Task 7: Update Roadmap Sequencing**  
   Insert this testing phase before existing phase 5 in the main roadmap/tasks flow.
+
+8. **Task 8: Testing Refinements**  
+  Differentiate coverage thresholds per module risk profile, add mutation testing configuration and script, add test runtime budget enforcement script, and update documentation.
 
 ## Complexity Tracking
 

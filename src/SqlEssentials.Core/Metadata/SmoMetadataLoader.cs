@@ -7,7 +7,7 @@ using SqlEssentials.Core.Models;
 
 namespace SqlEssentials.Core.Metadata
 {
-    public sealed class SmoMetadataLoader
+    public class SmoMetadataLoader
     {
         private readonly ILogger _logger;
 
@@ -16,7 +16,7 @@ namespace SqlEssentials.Core.Metadata
             _logger = logger ?? NullLogger.Instance;
         }
 
-        public async Task<DatabaseCache> LoadAsync(string connectionKey, string correlationId = null, CancellationToken cancellationToken = default)
+        public virtual async Task<DatabaseCache> LoadAsync(string connectionKey, string correlationId = null, CancellationToken cancellationToken = default)
         {
             _logger.Log(LogLevel.Info, "SmoLoader", $"Loading metadata for {connectionKey}", correlationId: correlationId);
             cancellationToken.ThrowIfCancellationRequested();

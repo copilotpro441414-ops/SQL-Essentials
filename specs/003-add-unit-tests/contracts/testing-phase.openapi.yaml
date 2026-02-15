@@ -143,12 +143,18 @@ components:
     QualityGateRequest:
       type: object
       required:
-        - requiredCoverage
+        - requiredLineCoverage
+        - requiredBranchCoverage
         - maxRuntimeSeconds
         - coverageReport
         - testRunResult
       properties:
-        requiredCoverage:
+        requiredLineCoverage:
+          type: number
+          minimum: 0
+          maximum: 100
+          default: 85
+        requiredBranchCoverage:
           type: number
           minimum: 0
           maximum: 100
