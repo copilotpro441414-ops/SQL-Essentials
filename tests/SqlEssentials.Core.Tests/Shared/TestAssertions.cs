@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Xunit;
 
@@ -58,12 +59,12 @@ namespace SqlEssentials.Core.Tests.Shared
         /// </summary>
         public static void AssertCompletesWithin(Action action, TimeSpan maxDuration, string message = null)
         {
-            var startTime = DateTime.UtcNow;
+            var stopwatch = Stopwatch.StartNew();
             action();
-            var duration = DateTime.UtcNow - startTime;
+            stopwatch.Stop();
             
-            Assert.True(duration <= maxDuration, 
-                message ?? $"Action took {duration.TotalMilliseconds}ms, expected <= {maxDuration.TotalMilliseconds}ms");
+            Assert.True(stopwatch.Elapsed <= maxDuration, 
+                message ?? $"Action took {stopwatch.Elapsed.TotalMilliseconds}ms, expected <= {maxDuration.TotalMilliseconds}ms");
         }
     }
 }
