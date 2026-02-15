@@ -124,7 +124,7 @@ Based on plan.md structure:
 - [X] T054o Add logging to `SqlCompletionSource`: trigger type, connection key, fallback items, elapsed time, item count
 - [X] T054p Add logging to `RefreshSchemaCommand` and `LogContentTypeCommand`: command invoked, result
 - [X] T054q Remove all existing ad-hoc logging: Debug.WriteLine calls, File.AppendAllText to perf.log, ActivityLog calls — replace with ILogger calls
-- [ ] T054r Add ILogger unit tests in `tests/SqlEssentials.Core.Tests/Logging/` — verify level filtering, NullLogger no-op, LogScope elapsed time
+- [X] T054r Add ILogger unit tests in `tests/SqlEssentials.Core.Tests/Logging/` — verify level filtering, NullLogger no-op, LogScope elapsed time
 - [X] T054s Implement `IDisposable` on `FileLogger` for clean flush/close; wire to package Dispose
 
 **Checkpoint**: Foundational complete - schema cache loads, basic autocomplete popup works, all stories can now proceed independently
@@ -223,33 +223,40 @@ Based on plan.md structure:
 
 **Goal**: After `JOIN Orders o ON`, suggest `u.UserID = o.UserID` based on FK relationships
 
-**Independent Test**: Connect to database with FKs, write JOIN clause, verify ON predicate suggestion matches FK
+**Independent Test**: Connect to database with FKs, verify normal FK-based ON suggestions and odd/fallback scenarios (missing FK, unresolved aliases, multi-column keys).
 
 ### Models for User Story 3
 
-- [ ] T068 [P] [US3] Create `JoinMatchType` enum in `src/SqlEssentials.Core/Models/JoinMatchType.cs`
-- [ ] T069 [P] [US3] Create `JoinSuggestion` model in `src/SqlEssentials.Core/Models/JoinSuggestion.cs`
-- [ ] T070 [P] [US3] Create `IJoinContext` interface in `src/SqlEssentials.Core/Context/IJoinContext.cs`
-- [ ] T071 [P] [US3] Create `JoinContext` model in `src/SqlEssentials.Core/Models/JoinContext.cs`
+- [X] T068 [P] [US3] Create `JoinMatchType` enum in `src/SqlEssentials.Core/Models/JoinMatchType.cs`
+- [X] T069 [P] [US3] Create `JoinSuggestion` model in `src/SqlEssentials.Core/Models/JoinSuggestion.cs`
+- [X] T070 [P] [US3] Create `IJoinContext` interface in `src/SqlEssentials.Core/Context/IJoinContext.cs`
+- [X] T071 [P] [US3] Create `JoinContext` model in `src/SqlEssentials.Core/Models/JoinContext.cs`
 
 ### JOIN Predicate Generation
 
-- [ ] T072 [US3] Implement JOIN context detection in `ContextAnalyzer` (left table, right table identification)
-- [ ] T073 [US3] Create `JoinPredicateGenerator` in `src/SqlEssentials.Core/Completion/JoinPredicateGenerator.cs`
-- [ ] T074 [US3] Implement FK-based predicate suggestion in `JoinPredicateGenerator` (FR-009)
-- [ ] T075 [US3] Implement column-name-matching fallback in `JoinPredicateGenerator` (FR-010)
-- [ ] T076 [US3] Implement ranking: FK suggestions higher than name-based in `JoinPredicateGenerator` (FR-011)
+- [X] T072 [US3] Implement JOIN context detection in `ContextAnalyzer` (left table, right table identification)
+- [X] T073 [US3] Create `JoinPredicateGenerator` in `src/SqlEssentials.Core/Completion/JoinPredicateGenerator.cs`
+- [X] T074 [US3] Implement FK-based predicate suggestion in `JoinPredicateGenerator` (FR-009)
+- [X] T075 [US3] Implement column-name-matching fallback in `JoinPredicateGenerator` (FR-010)
+- [X] T076 [US3] Implement ranking: FK suggestions higher than name-based in `JoinPredicateGenerator` (FR-011)
 
 ### Integration for User Story 3
 
-- [ ] T077 [US3] Integrate `JoinPredicateGenerator` with `CompletionEngine` for ON clause context
-- [ ] T078 [US3] Add JOIN predicate as `SuggestionType.JoinPredicate` in completion results
+- [X] T077 [US3] Integrate `JoinPredicateGenerator` with `CompletionEngine` for ON clause context
+- [X] T078 [US3] Add JOIN predicate as `SuggestionType.JoinPredicate` in completion results
 
 **Checkpoint**: User Story 3 complete - JOIN ON suggestions based on FK/column matching
 
 ### Logging Instrumentation for User Story 3
 
-- [ ] T078a [US3] Add Debug-level logging to `JoinPredicateGenerator` — log FK lookup result, column name match fallback, predicate generated
+- [X] T078a [US3] Add Debug-level logging to `JoinPredicateGenerator` — log FK lookup result, column name match fallback, predicate generated
+
+### Test Coverage for User Story 3 (Normal + Odd Cases)
+
+- [X] T078b [P] [US3] Add JOIN predicate happy-path tests (single FK, multi-column FK) in `tests/SqlEssentials.Core.Tests/Completion/JoinPredicateGeneratorTests.cs`
+- [X] T078c [P] [US3] Add JOIN odd-case tests (no FK fallback, unresolved alias/table, duplicate predicate dedupe) in `tests/SqlEssentials.Core.Tests/Completion/JoinPredicateGeneratorTests.cs`
+- [X] T078d [P] [US3] Add ON-clause join context detection tests (normal + malformed/partial SQL) in `tests/SqlEssentials.Core.Tests/Context/ContextAnalyzerJoinContextTests.cs`
+- [X] T078e [US3] Run US3-focused tests and verify all normal/odd scenarios pass before phase sign-off, then run post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`)
 
 ---
 
@@ -257,7 +264,7 @@ Based on plan.md structure:
 
 **Goal**: Suggest T-SQL keywords and expand snippet shortcuts with placeholder navigation
 
-**Independent Test**: Type `SEL` and verify `SELECT` suggested; type `selj` and verify snippet expands with placeholders
+**Independent Test**: Type `SEL`/`selj` for normal flows and validate odd snippet/placeholder cases (invalid placeholders, missing defaults, partial shortcuts).
 
 ### Models for User Story 4
 
@@ -295,13 +302,19 @@ Based on plan.md structure:
 - [ ] T095a [US4] Add Debug-level logging to `SnippetManager` — log snippet load count, custom snippet add/update/remove
 - [ ] T095b [US4] Add Trace-level logging to `SnippetExpander` — log snippet expansion trigger, placeholder navigation
 
+### Test Coverage for User Story 4 (Normal + Odd Cases)
+
+- [ ] T095c [P] [US4] Add keyword/snippet happy-path tests (shortcut match, snippet insertion, placeholder tab order) in `tests/SqlEssentials.Core.Tests/Completion/KeywordAndSnippetTests.cs`
+- [ ] T095d [P] [US4] Add odd-case tests (invalid placeholder syntax, missing snippet body, ambiguous shortcut collisions) in `tests/SqlEssentials.Core.Tests/Completion/KeywordAndSnippetTests.cs`
+- [ ] T095e [US4] Run US4-focused tests and verify all normal/odd scenarios pass before phase sign-off, then run post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`)
+
 ---
 
 ## Phase 8: User Story 6 - Basic SQL Formatting (Priority: P2)
 
 **Goal**: Format Document and Format Selection commands with uppercase keywords, proper indentation, JOINs on new lines
 
-**Independent Test**: Paste unformatted SQL, run Format Document, verify keywords uppercased and properly indented
+**Independent Test**: Validate normal formatting output and odd cases (partial selection, syntax errors, nested edge cases) with deterministic expectations.
 
 ### Models for User Story 6
 
@@ -342,13 +355,19 @@ Based on plan.md structure:
 - [ ] T115a [US6] Add Info-level logging to `FormatDocumentCommand` and `FormatSelectionCommand` — log command invoked, selection range, profile used
 - [ ] T115b [US6] Add Debug-level logging to `SqlFormatter` — log token count processed, formatting elapsed time
 
+### Test Coverage for User Story 6 (Normal + Odd Cases)
+
+- [ ] T115c [P] [US6] Add formatter happy-path tests (document/selection formatting, join indentation, uppercase keywords) in `tests/SqlEssentials.Core.Tests/Formatting/SqlFormatterTests.cs`
+- [ ] T115d [P] [US6] Add odd-case tests (malformed SQL fallback, deeply nested subqueries, mixed whitespace styles) in `tests/SqlEssentials.Core.Tests/Formatting/SqlFormatterEdgeCaseTests.cs`
+- [ ] T115e [US6] Run US6-focused tests and verify all normal/odd scenarios pass before phase sign-off, then run post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`)
+
 ---
 
 ## Phase 9: User Story 7 - Custom Snippet Management (Priority: P3)
 
 **Goal**: Settings UI for creating, editing, and managing custom snippets
 
-**Independent Test**: Open settings, create new snippet with shortcut, verify it appears in autocomplete
+**Independent Test**: Validate normal create/edit/delete flows and odd persistence/import/export cases (invalid JSON, duplicate shortcuts, missing fields).
 
 **Depends on**: US4 (SnippetManager must exist)
 
@@ -372,6 +391,12 @@ Based on plan.md structure:
 ### Logging Instrumentation for User Story 7
 
 - [ ] T124a [US7] Add Info-level logging to snippet persistence — log save/reload/import/export operations with snippet count
+
+### Test Coverage for User Story 7 (Normal + Odd Cases)
+
+- [ ] T124b [P] [US7] Add snippet persistence happy-path tests (save/reload/create/update/delete/import/export) in `tests/SqlEssentials.Core.Tests/Snippets/SnippetManagerTests.cs`
+- [ ] T124c [P] [US7] Add odd-case tests (invalid snippet JSON, duplicate shortcuts, placeholder mismatch validation) in `tests/SqlEssentials.Core.Tests/Snippets/SnippetManagerEdgeCaseTests.cs`
+- [ ] T124d [US7] Run US7-focused tests and verify all normal/odd scenarios pass before phase sign-off, then run post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`)
 
 ---
 
@@ -412,6 +437,14 @@ Based on plan.md structure:
 - [ ] T141 **[PERF]** Profile and optimize any completion path exceeding 80ms (leave headroom for edge cases)
 - [ ] T142 Update README.md with installation and usage instructions
 
+### Test Coverage & Validation Gates (Normal + Odd Cases)
+
+- [ ] T142a Add/maintain test suites for each implemented phase feature covering both normal and odd cases in `tests/SqlEssentials.Core.Tests/`
+- [ ] T142b Execute phase-focused test runs and require all normal/odd test cases to pass before marking any phase checkpoint complete
+- [ ] T142c Enforce post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`) after each phase-focused test run
+- [ ] T142d Enforce regression run (`dotnet test` full core suite) after each phase completion
+- [ ] T142e Update phase notes/checkpoints with explicit evidence that normal + odd-case validation and coverage gate validation passed
+
 ---
 
 ## Dependencies & Execution Order
@@ -449,6 +482,8 @@ After Foundational phase, each story:
 - Models marked [P] can run in parallel
 - Interfaces before implementations
 - Core implementations before Extension integrations
+- Each phase must include tests for normal and odd scenarios, and phase sign-off requires those tests to pass
+- After phase tests pass, run coverage verification (`pwsh scripts/quality/Verify-CoreCoverage.ps1`) as a mandatory post-test check
 
 ### Parallel Opportunities
 

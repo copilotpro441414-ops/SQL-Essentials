@@ -219,7 +219,7 @@ The system maintains an in-memory cache of database schema metadata (tables, vie
 - **NFR-001**: System MUST collect anonymous telemetry including crash reports and performance metrics (completion latency, cache load times).
 - **NFR-002**: System MUST NOT collect query text, table names, or any user data in telemetry.
 - **NFR-003**: System MUST provide an opt-out setting for all telemetry collection.
-- **NFR-004**: System MUST write diagnostic logs to `%APPDATA%\SqlEssentials\logs\` for local troubleshooting.
+- **NFR-004**: System MUST write diagnostic logs to `%TEMP%\SqlEssentials.<PID>.debug.log` for local troubleshooting.
 
 **Settings & Configuration**
 
@@ -261,7 +261,7 @@ The following features are planned for future phases and are explicitly **NOT** 
 | Advanced formatting profiles & CLI tool | Phase 2 |
 | Refactoring: rename alias, expand `SELECT *`, qualify object names | Phase 3 |
 | Code analyzer with 10-15 rules and diagnostics panel | Phase 4 |
-| AI features: NL→SQL, Explain SQL, AI completions | Phase 5 (Optional) |
+| AI features: NL→SQL, Explain SQL, AI completions | Post-MVP (Optional) |
 | Environment-based tab coloring | Future |
 | Persistent query history | Future |
 | Tab restoration after crash | Future |

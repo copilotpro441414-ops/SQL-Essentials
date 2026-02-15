@@ -18,13 +18,20 @@ namespace SqlEssentials.Core.Completion
         private readonly ISchemaCache _schemaCache;
         private readonly ILogger _logger;
         private readonly SuggestionScoringPolicy _scoringPolicy;
+        private readonly JoinPredicateGenerator _joinPredicateGenerator;
 
-        public CompletionEngine(IContextAnalyzer contextAnalyzer, ISchemaCache schemaCache, ILogger logger = null, SuggestionScoringPolicy scoringPolicy = null)
+        public CompletionEngine(
+            IContextAnalyzer contextAnalyzer,
+            ISchemaCache schemaCache,
+            ILogger logger = null,
+            SuggestionScoringPolicy scoringPolicy = null,
+            JoinPredicateGenerator joinPredicateGenerator = null)
         {
             _contextAnalyzer = contextAnalyzer ?? throw new ArgumentNullException(nameof(contextAnalyzer));
             _schemaCache = schemaCache ?? throw new ArgumentNullException(nameof(schemaCache));
             _logger = logger ?? NullLogger.Instance;
             _scoringPolicy = scoringPolicy ?? new SuggestionScoringPolicy();
+            _joinPredicateGenerator = joinPredicateGenerator ?? new JoinPredicateGenerator(_logger);
         }
 
         public async Task<ICompletionResult> GetCompletionsAsync(
@@ -39,19 +46,59 @@ namespace SqlEssentials.Core.Completion
             {
                 try
                 {
+                    _logger.Log(LogLevel.Debug, "CompletionEngine", "GetCompletionsAsync started", properties: new Dictionary<string, object>
+                    {
+                        { "cursor_position", cursorPosition },
+                        { "connection_key", connectionKey ?? string.Empty },
+                        { "trigger", trigger.ToString() }
+                    }, correlationId: correlationId);
+
                     var context = _contextAnalyzer.Analyze(queryText, cursorPosition, correlationId);
+                    _logger.Log(LogLevel.Debug, "CompletionEngine", "Context analysis complete", properties: new Dictionary<string, object>
+                    {
+                        { "clause", context.CurrentClause.ToString() },
+                        { "alias_count", context.Aliases?.Count ?? 0 },
+                        { "qualifier", context.QualifierPrefix ?? string.Empty }
+                    }, correlationId: correlationId);
+
                     var cache = await _schemaCache.GetOrLoadAsync(connectionKey, correlationId, cancellationToken).ConfigureAwait(false);
+                    _logger.Log(LogLevel.Debug, "CompletionEngine", "Cache lookup complete", properties: new Dictionary<string, object>
+                    {
+                        { "cache_status", cache?.Status.ToString() ?? string.Empty },
+                        { "table_count", cache?.Tables?.Count ?? 0 },
+                        { "view_count", cache?.Views?.Count ?? 0 }
+                    }, correlationId: correlationId);
 
                     var suggestions = new List<ISuggestion>();
                     if (cache != null)
                     {
+                        if (context.CurrentClause == ClauseType.On && context.JoinContext != null)
+                        {
+                            var joinSuggestions = _joinPredicateGenerator.Generate(context.JoinContext, cache, correlationId);
+                            suggestions.AddRange(joinSuggestions);
+                        }
+
                         if (!string.IsNullOrWhiteSpace(context.QualifierPrefix))
                         {
                             var qualifier = context.QualifierPrefix;
                             var table = ResolveQualifiedTable(context, cache, qualifier);
                             if (table != null)
                             {
-                                suggestions.AddRange(CreateColumnSuggestions(table));
+                                var columnSuggestions = CreateColumnSuggestions(table).ToList();
+                                suggestions.AddRange(columnSuggestions);
+                                _logger.Log(LogLevel.Trace, "CompletionEngine", "Column-only filter applied", properties: new Dictionary<string, object>
+                                {
+                                    { "alias", qualifier },
+                                    { "resolved_table", table.FullyQualifiedName ?? table.ObjectName },
+                                    { "column_count", columnSuggestions.Count }
+                                }, correlationId: correlationId);
+                            }
+                            else
+                            {
+                                _logger.Log(LogLevel.Trace, "CompletionEngine", "Column-only filter alias unresolved", properties: new Dictionary<string, object>
+                                {
+                                    { "alias", qualifier }
+                                }, correlationId: correlationId);
                             }
                         }
                         else
@@ -64,7 +111,7 @@ namespace SqlEssentials.Core.Completion
                     }
 
                     var typedToken = GetTypedToken(context.PartialInput);
-                    var rankedSuggestions = RankSuggestions(suggestions, context, typedToken);
+                    var rankedSuggestions = RankSuggestions(suggestions, context, typedToken, correlationId);
                     var applicableSpan = new TextSpan(
                         Math.Max(0, context.CursorPosition - typedToken.Length),
                         typedToken.Length);
@@ -181,10 +228,23 @@ namespace SqlEssentials.Core.Completion
         private IReadOnlyList<ISuggestion> RankSuggestions(
             IEnumerable<ISuggestion> suggestions,
             IAutocompleteContext context,
-            string typedToken)
+            string typedToken,
+            string correlationId)
         {
             var clause = context.CurrentClause;
-            return suggestions
+            var sourceSuggestions = suggestions.ToList();
+
+            foreach (var suggestionType in sourceSuggestions.Select(s => s.Type).Distinct())
+            {
+                _logger.Log(LogLevel.Debug, "CompletionEngine", "Clause bonus applied", properties: new Dictionary<string, object>
+                {
+                    { "clause", clause.ToString() },
+                    { "suggestion_type", suggestionType.ToString() },
+                    { "clause_bonus", _scoringPolicy.GetClauseBonus(suggestionType, clause) }
+                }, correlationId: correlationId);
+            }
+
+            return sourceSuggestions
                 .OrderByDescending(suggestion => _scoringPolicy.CalculateScore(suggestion, clause, typedToken))
                 .ThenBy(suggestion => suggestion.DisplayText, StringComparer.OrdinalIgnoreCase)
                 .ToList();

@@ -13,5 +13,6 @@ namespace SqlEssentials.Core.Context
         IReadOnlyDictionary<string, IAliasBinding> Aliases { get; }
         IReadOnlyList<string> ReferencedTables { get; }
         TriggerReason Trigger { get; }
+        IJoinContext JoinContext { get; }
     }
 }

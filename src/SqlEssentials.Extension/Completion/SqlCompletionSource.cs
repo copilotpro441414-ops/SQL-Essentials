@@ -72,6 +72,7 @@ namespace SqlEssentials.Extension.Completion
                 var snapshot = triggerLocation.Snapshot;
                 var queryText = snapshot.GetText();
                 var connectionKey = _connectionKeyProvider();
+                var stopwatch = Stopwatch.StartNew();
 
                 try
                 {
@@ -90,13 +91,26 @@ namespace SqlEssentials.Extension.Completion
                         items.Add(item);
                     }
 
-                    _logger.Log(LogLevel.Info, "CompletionSource", $"GetCompletionContextAsync items={items.Count}", correlationId: correlationId);
+                    stopwatch.Stop();
+                    _logger.Log(LogLevel.Info, "CompletionSource", "GetCompletionContextAsync complete", properties: new Dictionary<string, object>
+                    {
+                        { "item_count", items.Count },
+                        { "trigger", trigger.Reason.ToString() },
+                        { "connection_key", connectionKey ?? string.Empty },
+                        { "fallback_items", 0 },
+                        { "elapsed_ms", stopwatch.Elapsed.TotalMilliseconds }
+                    }, correlationId: correlationId);
 
                     return new CompletionContext(items.ToImmutableArray());
                 }
                 catch (Exception ex)
                 {
-                    _logger.Log(LogLevel.Error, "CompletionSource", "GetCompletionContextAsync failed", ex, correlationId: correlationId);
+                    stopwatch.Stop();
+                    _logger.Log(LogLevel.Error, "CompletionSource", "GetCompletionContextAsync failed", ex, properties: new Dictionary<string, object>
+                    {
+                        { "connection_key", connectionKey ?? string.Empty },
+                        { "elapsed_ms", stopwatch.Elapsed.TotalMilliseconds }
+                    }, correlationId: correlationId);
                     throw;
                 }
             }

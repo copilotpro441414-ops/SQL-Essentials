@@ -1,4 +1,5 @@
 using Microsoft.SqlServer.TransactSql.ScriptDom;
+using SqlEssentials.Core.Logging;
 using SqlEssentials.Core.Models;
 
 namespace SqlEssentials.Core.Context
@@ -6,11 +7,15 @@ namespace SqlEssentials.Core.Context
     public sealed class ClauseDetectionVisitor : TSqlFragmentVisitor
     {
         private readonly int _cursorPosition;
+        private readonly ILogger _logger;
+        private readonly string _correlationId;
         private int _bestMatchLength = int.MaxValue;
 
-        public ClauseDetectionVisitor(int cursorPosition)
+        public ClauseDetectionVisitor(int cursorPosition, ILogger logger = null, string correlationId = null)
         {
             _cursorPosition = cursorPosition;
+            _logger = logger ?? NullLogger.Instance;
+            _correlationId = correlationId;
         }
 
         public ClauseType DetectedClause { get; private set; } = ClauseType.Unknown;
@@ -79,6 +84,13 @@ namespace SqlEssentials.Core.Context
             {
                 _bestMatchLength = fragment.FragmentLength;
                 DetectedClause = clause;
+                _logger.Log(LogLevel.Trace, "ClauseDetectionVisitor", "Detected clause", properties: new System.Collections.Generic.Dictionary<string, object>
+                {
+                    { "clause", clause.ToString() },
+                    { "cursor_position", _cursorPosition },
+                    { "fragment_start", fragment.StartOffset },
+                    { "fragment_length", fragment.FragmentLength }
+                }, correlationId: _correlationId);
             }
         }
 

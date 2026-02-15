@@ -14,7 +14,8 @@ namespace SqlEssentials.Core.Models
             string qualifierPrefix,
             IReadOnlyDictionary<string, IAliasBinding> aliases,
             IReadOnlyList<string> referencedTables,
-            TriggerReason trigger)
+            TriggerReason trigger,
+            IJoinContext joinContext = null)
         {
             QueryText = queryText ?? throw new ArgumentNullException(nameof(queryText));
             CursorPosition = cursorPosition;
@@ -24,6 +25,7 @@ namespace SqlEssentials.Core.Models
             Aliases = aliases ?? throw new ArgumentNullException(nameof(aliases));
             ReferencedTables = referencedTables ?? throw new ArgumentNullException(nameof(referencedTables));
             Trigger = trigger;
+            JoinContext = joinContext;
         }
 
         public string QueryText { get; }
@@ -34,5 +36,6 @@ namespace SqlEssentials.Core.Models
         public IReadOnlyDictionary<string, IAliasBinding> Aliases { get; }
         public IReadOnlyList<string> ReferencedTables { get; }
         public TriggerReason Trigger { get; }
+        public IJoinContext JoinContext { get; }
     }
 }

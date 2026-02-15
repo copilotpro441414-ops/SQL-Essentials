@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SqlEssentials.Core.Logging;
@@ -18,6 +19,7 @@ namespace SqlEssentials.Core.Metadata
 
         public virtual async Task<DatabaseCache> LoadAsync(string connectionKey, string correlationId = null, CancellationToken cancellationToken = default)
         {
+            var stopwatch = Stopwatch.StartNew();
             _logger.Log(LogLevel.Info, "SmoLoader", $"Loading metadata for {connectionKey}", correlationId: correlationId);
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -41,20 +43,26 @@ namespace SqlEssentials.Core.Metadata
                     procedures,
                     functions);
 
+                stopwatch.Stop();
                 _logger.Log(LogLevel.Info, "SmoLoader", $"Successfully loaded metadata for {connectionKey}", 
                     properties: new Dictionary<string, object>
                     {
                         { "tables", tables.Count },
                         { "views", views.Count },
                         { "procs", procedures.Count },
-                        { "funcs", functions.Count }
+                        { "funcs", functions.Count },
+                        { "elapsed_ms", stopwatch.Elapsed.TotalMilliseconds }
                     },
                     correlationId: correlationId);
                 return cache;
             }
             catch (Exception ex)
             {
-                _logger.Log(LogLevel.Error, "SmoLoader", $"Failed to load metadata for {connectionKey}", ex, correlationId: correlationId);
+                stopwatch.Stop();
+                _logger.Log(LogLevel.Error, "SmoLoader", $"Failed to load metadata for {connectionKey}", ex, properties: new Dictionary<string, object>
+                {
+                    { "elapsed_ms", stopwatch.Elapsed.TotalMilliseconds }
+                }, correlationId: correlationId);
                 throw;
             }
         }
