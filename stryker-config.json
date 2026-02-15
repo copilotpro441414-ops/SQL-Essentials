@@ -1,7 +1,7 @@
 {
   "stryker-config": {
-    "project": "SqlEssentials.Core.csproj",
-    "test-project": "SqlEssentials.Core.Tests.csproj",
+    "project": "src/SqlEssentials.Core/SqlEssentials.Core.csproj",
+    "test-project": "tests/SqlEssentials.Core.Tests/SqlEssentials.Core.Tests.csproj",
     "solution": "SqlEssentials.sln",
     "mutate": [
       "src/SqlEssentials.Core/Completion/SuggestionScoringPolicy.cs"
