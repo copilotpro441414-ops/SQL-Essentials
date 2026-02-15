@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  title: SQL Essentials Testing Phase Contract
+  version: 1.0.0
+  description: Contract for deterministic unit-test execution, coverage collection, and quality gate evaluation.
+servers:
+  - url: https://local.spec
+paths:
+  /tests/run:
+    post:
+      summary: Run deterministic unit tests
+      operationId: runUnitTests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestRunRequest'
+      responses:
+        '200':
+          description: Unit tests completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestRunResult'
+  /coverage/report:
+    post:
+      summary: Generate module-level coverage report
+      operationId: generateCoverageReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoverageReportRequest'
+      responses:
+        '200':
+          description: Coverage report generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverageReportResult'
+  /quality-gates/evaluate:
+    post:
+      summary: Evaluate runtime and coverage gates
+      operationId: evaluateQualityGates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QualityGateRequest'
+      responses:
+        '200':
+          description: Quality gate evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QualityGateResult'
+components:
+  schemas:
+    TestRunRequest:
+      type: object
+      required:
+        - testScope
+        - includeTableDriven
+        - includeInfrastructure
+      properties:
+        testScope:
+          type: string
+          enum: [completion, context, metadata-cache, logging, all]
+        includeTableDriven:
+          type: boolean
+        includeInfrastructure:
+          type: boolean
+        maxRuntimeSeconds:
+          type: integer
+          minimum: 1
+          maximum: 90
+    TestRunResult:
+      type: object
+      required:
+        - total
+        - passed
+        - failed
+        - durationSeconds
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        passed:
+          type: integer
+          minimum: 0
+        failed:
+          type: integer
+          minimum: 0
+        durationSeconds:
+          type: number
+          minimum: 0
+        failures:
+          type: array
+          items:
+            type: string
+    CoverageReportRequest:
+      type: object
+      required:
+        - modules
+      properties:
+        modules:
+          type: array
+          items:
+            type: string
+            enum: [completion, context, metadata-cache, logging]
+        includeBranchCoverage:
+          type: boolean
+          default: true
+    CoverageReportResult:
+      type: object
+      required:
+        - modules
+      properties:
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModuleCoverage'
+    ModuleCoverage:
+      type: object
+      required:
+        - module
+        - lineCoverage
+        - branchCoverage
+      properties:
+        module:
+          type: string
+        lineCoverage:
+          type: number
+          minimum: 0
+          maximum: 100
+        branchCoverage:
+          type: number
+          minimum: 0
+          maximum: 100
+    QualityGateRequest:
+      type: object
+      required:
+        - requiredCoverage
+        - maxRuntimeSeconds
+        - coverageReport
+        - testRunResult
+      properties:
+        requiredCoverage:
+          type: number
+          minimum: 0
+          maximum: 100
+          default: 85
+        maxRuntimeSeconds:
+          type: integer
+          minimum: 1
+          maximum: 90
+        coverageReport:
+          $ref: '#/components/schemas/CoverageReportResult'
+        testRunResult:
+          $ref: '#/components/schemas/TestRunResult'
+    QualityGateResult:
+      type: object
+      required:
+        - passed
+        - violations
+      properties:
+        passed:
+          type: boolean
+        violations:
+          type: array
+          items:
+            type: string

@@ -1,0 +1,63 @@
+name: Run Tests
+
+# This workflow runs unit tests on push and pull request events.
+# Note: Tests require Mono since the project targets .NET Framework 4.8
+
+on:
+  push:
+    branches: [ main, 1-smart-autocomplete, 'copilot/**' ]
+  pull_request:
+    branches: [ main, 1-smart-autocomplete ]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Install Mono
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mono-complete
+      
+    - name: Restore dependencies
+      run: |
+        dotnet restore src/SqlEssentials.Core/SqlEssentials.Core.csproj
+        dotnet restore tests/SqlEssentials.Core.Tests/SqlEssentials.Core.Tests.csproj
+      
+    - name: Build Core project
+      run: dotnet build src/SqlEssentials.Core/SqlEssentials.Core.csproj --no-restore --configuration Release
+      
+    - name: Build Tests project
+      run: dotnet build tests/SqlEssentials.Core.Tests/SqlEssentials.Core.Tests.csproj --no-restore --configuration Release
+      
+    - name: Run tests
+      run: dotnet test tests/SqlEssentials.Core.Tests/SqlEssentials.Core.Tests.csproj --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+      
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: tests/SqlEssentials.Core.Tests/TestResults/*.trx
+        
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Test Results
+        path: tests/SqlEssentials.Core.Tests/TestResults/*.trx
+        reporter: dotnet-trx
+        fail-on-error: true

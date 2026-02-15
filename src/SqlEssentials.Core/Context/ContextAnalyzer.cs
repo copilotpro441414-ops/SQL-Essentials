@@ -11,11 +11,13 @@ namespace SqlEssentials.Core.Context
     {
         private readonly TSqlParser _parser;
         private readonly ILogger _logger;
+        private readonly ClauseClassifier _clauseClassifier;
 
-        public ContextAnalyzer(ILogger logger = null)
+        public ContextAnalyzer(ILogger logger = null, ClauseClassifier clauseClassifier = null)
         {
             _parser = new TSql160Parser(initialQuotedIdentifiers: false);
             _logger = logger ?? NullLogger.Instance;
+            _clauseClassifier = clauseClassifier ?? new ClauseClassifier(_parser);
         }
 
         public IAutocompleteContext Analyze(string queryText, int cursorPosition, string correlationId = null)
@@ -27,7 +29,7 @@ namespace SqlEssentials.Core.Context
 
             using (var scope = _logger.BeginScope("ContextAnalyzer", "Analyze", correlationId: correlationId))
             {
-                var currentClause = GetClauseAtPosition(queryText, cursorPosition);
+                var currentClause = _clauseClassifier.ClassifyClause(queryText, cursorPosition);
                 var aliases = ExtractAliases(queryText);
                 var referencedTables = new List<string>();
                 foreach (var alias in aliases.Values)
@@ -144,16 +146,9 @@ namespace SqlEssentials.Core.Context
 
         private ClauseType GetClauseAtPosition(string queryText, int cursorPosition)
         {
-            IList<ParseError> errors;
-            var fragment = _parser.Parse(new StringReader(queryText), out errors);
-            if (fragment == null)
-            {
-                return ClauseType.Unknown;
-            }
-
-            var visitor = new ClauseDetectionVisitor(cursorPosition);
-            fragment.Accept(visitor);
-            return visitor.DetectedClause;
+            // Deprecated: Use ClauseClassifier.ClassifyClause instead
+            // Kept temporarily for compatibility
+            return _clauseClassifier.ClassifyClause(queryText, cursorPosition);
         }
 
         private sealed class AliasVisitor : TSqlFragmentVisitor
