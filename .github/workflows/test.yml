@@ -1,7 +1,7 @@
 name: Run Tests
 
 # This workflow runs unit tests on push and pull request events.
-# Note: Tests require Mono since the project targets .NET Framework 4.8
+# Note: Uses Windows runner since the project targets .NET Framework 4.8
 
 on:
   push:
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     
     steps:
     - name: Checkout code
@@ -26,11 +26,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-        
-    - name: Install Mono
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y mono-complete
       
     - name: Restore dependencies
       run: |
