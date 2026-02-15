@@ -17,12 +17,14 @@ namespace SqlEssentials.Core.Completion
         private readonly IContextAnalyzer _contextAnalyzer;
         private readonly ISchemaCache _schemaCache;
         private readonly ILogger _logger;
+        private readonly SuggestionScoringPolicy _scoringPolicy;
 
-        public CompletionEngine(IContextAnalyzer contextAnalyzer, ISchemaCache schemaCache, ILogger logger = null)
+        public CompletionEngine(IContextAnalyzer contextAnalyzer, ISchemaCache schemaCache, ILogger logger = null, SuggestionScoringPolicy scoringPolicy = null)
         {
             _contextAnalyzer = contextAnalyzer ?? throw new ArgumentNullException(nameof(contextAnalyzer));
             _schemaCache = schemaCache ?? throw new ArgumentNullException(nameof(schemaCache));
             _logger = logger ?? NullLogger.Instance;
+            _scoringPolicy = scoringPolicy ?? new SuggestionScoringPolicy();
         }
 
         public async Task<ICompletionResult> GetCompletionsAsync(
@@ -176,49 +178,32 @@ namespace SqlEssentials.Core.Completion
                 .ThenBy(column => column.Name, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static IReadOnlyList<ISuggestion> RankSuggestions(
+        private IReadOnlyList<ISuggestion> RankSuggestions(
             IEnumerable<ISuggestion> suggestions,
             IAutocompleteContext context,
             string typedToken)
         {
             var clause = context.CurrentClause;
             return suggestions
-                .OrderByDescending(suggestion => GetSuggestionScore(suggestion, clause, typedToken))
+                .OrderByDescending(suggestion => _scoringPolicy.CalculateScore(suggestion, clause, typedToken))
                 .ThenBy(suggestion => suggestion.DisplayText, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
 
         private static int GetSuggestionScore(ISuggestion suggestion, ClauseType clause, string typedToken)
         {
-            var score = suggestion.RelevanceScore;
-            score += GetClauseBonus(suggestion.Type, clause);
-
-            if (!string.IsNullOrEmpty(typedToken) &&
-                suggestion.DisplayText.StartsWith(typedToken, StringComparison.OrdinalIgnoreCase))
-            {
-                score += 50;
-            }
-
-            return score;
+            // Deprecated: Use SuggestionScoringPolicy.CalculateScore instead
+            // Kept temporarily for compatibility
+            var policy = new SuggestionScoringPolicy();
+            return policy.CalculateScore(suggestion, clause, typedToken);
         }
 
         private static int GetClauseBonus(SuggestionType type, ClauseType clause)
         {
-            switch (clause)
-            {
-                case ClauseType.From:
-                case ClauseType.Join:
-                    return type == SuggestionType.Table || type == SuggestionType.View ? 40 : 0;
-                case ClauseType.Select:
-                case ClauseType.Where:
-                case ClauseType.On:
-                case ClauseType.GroupBy:
-                case ClauseType.OrderBy:
-                case ClauseType.Having:
-                    return type == SuggestionType.Column ? 40 : 0;
-                default:
-                    return 0;
-            }
+            // Deprecated: Use SuggestionScoringPolicy.GetClauseBonus instead
+            // Kept temporarily for compatibility
+            var policy = new SuggestionScoringPolicy();
+            return policy.GetClauseBonus(type, clause);
         }
 
         private sealed class CompletionResult : ICompletionResult
