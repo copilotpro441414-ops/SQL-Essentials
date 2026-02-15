@@ -13,7 +13,10 @@
     Directory where test results and coverage reports are stored. Default: ./TestResults
 
 .PARAMETER CoverageReportPath
-    Path to a specific Cobertura XML report. If omitted, the latest report in TestResultsDir is used.
+    Path to a specific Cobertura XML report. If provided, skips test execution and uses this report directly.
+
+.PARAMETER NoBuild
+    If true, passes --no-build to dotnet test. Default: true. Only used when CoverageReportPath is not specified.
 
 .PARAMETER FailOnViolation
     If true, exits with non-zero code when coverage gates are violated. Default: true
@@ -25,12 +28,16 @@
     ./Verify-CoreCoverage.ps1 -CoverageReportPath ./TestResults/abc/coverage.cobertura.xml
 
 .EXAMPLE
+    ./Verify-CoreCoverage.ps1 -NoBuild $false
+
+.EXAMPLE
     ./Verify-CoreCoverage.ps1 -TestResultsDir ./coverage -FailOnViolation $false
 #>
 
 param(
     [string]$TestResultsDir = "./TestResults",
     [string]$CoverageReportPath = "",
+    [bool]$NoBuild = $true,
     [bool]$FailOnViolation = $true
 )
 
@@ -50,25 +57,37 @@ $moduleThresholds = @{
 }
 $requiredModules = @("Completion", "Context", "Metadata", "Logging")
 
-# Run tests with coverage
-Write-Host "Running tests with coverage collection..." -ForegroundColor Yellow
-$testProject = "tests/SqlEssentials.Core.Tests/SqlEssentials.Core.Tests.csproj"
-$runSettings = "tests/SqlEssentials.Core.Tests/coverage.runsettings"
+# Run tests with coverage only if a coverage report path is not provided
+if ($CoverageReportPath -eq "") {
+    Write-Host "Running tests with coverage collection..." -ForegroundColor Yellow
+    $testProject = "tests/SqlEssentials.Core.Tests/SqlEssentials.Core.Tests.csproj"
+    $runSettings = "tests/SqlEssentials.Core.Tests/coverage.runsettings"
 
-dotnet test $testProject `
-    --no-build `
-    --settings $runSettings `
-    --results-directory $TestResultsDir `
-    --collect:"XPlat Code Coverage"
+    $testArgs = @(
+        "test", $testProject,
+        "--settings", $runSettings,
+        "--results-directory", $TestResultsDir,
+        "--collect:XPlat Code Coverage"
+    )
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Tests failed!" -ForegroundColor Red
-    exit $LASTEXITCODE
+    if ($NoBuild) {
+        $testArgs += "--no-build"
+    }
+
+    & dotnet $testArgs
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Tests failed!" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host ""
+    Write-Host "Coverage collection complete." -ForegroundColor Green
+    Write-Host ""
+} else {
+    Write-Host "Using provided coverage report, skipping test execution..." -ForegroundColor Yellow
+    Write-Host ""
 }
-
-Write-Host ""
-Write-Host "Coverage collection complete." -ForegroundColor Green
-Write-Host ""
 
 # Resolve coverage file
 if ($CoverageReportPath -ne "") {
