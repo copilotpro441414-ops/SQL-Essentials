@@ -318,48 +318,48 @@ Based on plan.md structure:
 
 ### Models for User Story 6
 
-- [ ] T096 [P] [US6] Create `KeywordCase` enum in `src/SqlEssentials.Core/Models/KeywordCase.cs`
-- [ ] T097 [P] [US6] Create `IndentStyle` enum in `src/SqlEssentials.Core/Models/IndentStyle.cs`
-- [ ] T098 [P] [US6] Create `CommaPosition` enum in `src/SqlEssentials.Core/Models/CommaPosition.cs`
-- [ ] T099 [P] [US6] Create `FormattingProfile` model in `src/SqlEssentials.Core/Models/FormattingProfile.cs`
-- [ ] T100 [P] [US6] Create `FormattingResult` model in `src/SqlEssentials.Core/Models/FormattingResult.cs`
-- [ ] T101 [P] [US6] Create `FormattingError` model in `src/SqlEssentials.Core/Models/FormattingError.cs`
+- [X] T096 [P] [US6] Create `KeywordCase` enum in `src/SqlEssentials.Core/Models/KeywordCase.cs`
+- [X] T097 [P] [US6] Create `IndentStyle` enum in `src/SqlEssentials.Core/Models/IndentStyle.cs`
+- [X] T098 [P] [US6] Create `CommaPosition` enum in `src/SqlEssentials.Core/Models/CommaPosition.cs`
+- [X] T099 [P] [US6] Create `FormattingProfile` model in `src/SqlEssentials.Core/Models/FormattingProfile.cs`
+- [X] T100 [P] [US6] Create `FormattingResult` model in `src/SqlEssentials.Core/Models/FormattingResult.cs`
+- [X] T101 [P] [US6] Create `FormattingError` model in `src/SqlEssentials.Core/Models/FormattingError.cs`
 
 ### Formatter Implementation
 
-- [ ] T102 [US6] Create `ISqlFormatter` interface in `src/SqlEssentials.Core/Formatting/ISqlFormatter.cs` (from contracts/)
-- [ ] T103 [US6] Create `IFormattingProfile` interface in `src/SqlEssentials.Core/Formatting/IFormattingProfile.cs`
-- [ ] T104 [US6] Create `IFormattingResult` interface in `src/SqlEssentials.Core/Formatting/IFormattingResult.cs`
-- [ ] T105 [US6] Create `SqlFormatter` implementation in `src/SqlEssentials.Core/Formatting/SqlFormatter.cs`
-- [ ] T106 [US6] Create `FormattingVisitor` using ScriptDOM in `src/SqlEssentials.Core/Formatting/FormattingVisitor.cs`
-- [ ] T107 [US6] Implement keyword uppercasing in `FormattingVisitor` (FR-022)
-- [ ] T108 [US6] Implement indentation logic in `FormattingVisitor` (FR-022)
-- [ ] T109 [US6] Implement JOINs on new lines with ON indented in `FormattingVisitor` (FR-022)
-- [ ] T110 [US6] Implement subquery indentation relative to parent in `FormattingVisitor`
+- [X] T102 [US6] Create `ISqlFormatter` interface in `src/SqlEssentials.Core/Formatting/ISqlFormatter.cs` (from contracts/)
+- [X] T103 [US6] Create `IFormattingProfile` interface in `src/SqlEssentials.Core/Formatting/IFormattingProfile.cs`
+- [X] T104 [US6] Create `IFormattingResult` interface in `src/SqlEssentials.Core/Formatting/IFormattingResult.cs`
+- [X] T105 [US6] Create `SqlFormatter` implementation in `src/SqlEssentials.Core/Formatting/SqlFormatter.cs`
+- [X] T106 [US6] Create `FormattingVisitor` using ScriptDOM in `src/SqlEssentials.Core/Formatting/FormattingVisitor.cs`
+- [X] T107 [US6] Implement keyword uppercasing in `FormattingVisitor` (FR-022)
+- [X] T108 [US6] Implement indentation logic in `FormattingVisitor` (FR-022)
+- [X] T109 [US6] Implement JOINs on new lines with ON indented in `FormattingVisitor` (FR-022)
+- [X] T110 [US6] Implement subquery indentation relative to parent in `FormattingVisitor`
 
 ### Format Selection Support
 
-- [ ] T111 [US6] Implement `FormatSelection` method in `SqlFormatter` (FR-021)
-- [ ] T112 [US6] Create default formatting profile JSON in `src/SqlEssentials.Core/Formatting/Resources/DefaultProfile.json`
+- [X] T111 [US6] Implement `FormatSelection` method in `SqlFormatter` (FR-021)
+- [X] T112 [US6] Create default formatting profile JSON in `src/SqlEssentials.Core/Formatting/Resources/DefaultProfile.json`
 
 ### Extension Commands for Formatting
 
-- [ ] T113 [US6] Create `FormatDocumentCommand` in `src/SqlEssentials.Extension/Commands/FormatDocumentCommand.cs` (FR-020)
-- [ ] T114 [US6] Create `FormatSelectionCommand` in `src/SqlEssentials.Extension/Commands/FormatSelectionCommand.cs` (FR-021)
-- [ ] T115 [US6] Register commands with menu and Ctrl+K, Ctrl+D shortcut (NFR-008)
+- [X] T113 [US6] Create `FormatDocumentCommand` in `src/SqlEssentials.Extension/Commands/FormatDocumentCommand.cs` (FR-020)
+- [X] T114 [US6] Create `FormatSelectionCommand` in `src/SqlEssentials.Extension/Commands/FormatSelectionCommand.cs` (FR-021)
+- [X] T115 [US6] Register commands with menu and Ctrl+K, Ctrl+D shortcut (NFR-008)
 
 **Checkpoint**: User Story 6 complete - Format Document and Format Selection work correctly
 
 ### Logging Instrumentation for User Story 6
 
-- [ ] T115a [US6] Add Info-level logging to `FormatDocumentCommand` and `FormatSelectionCommand` — log command invoked, selection range, profile used
-- [ ] T115b [US6] Add Debug-level logging to `SqlFormatter` — log token count processed, formatting elapsed time
+- [X] T115a [US6] Add Info-level logging to `FormatDocumentCommand` and `FormatSelectionCommand` — log command invoked, selection range, profile used
+- [X] T115b [US6] Add Debug-level logging to `SqlFormatter` — log token count processed, formatting elapsed time
 
 ### Test Coverage for User Story 6 (Normal + Odd Cases)
 
-- [ ] T115c [P] [US6] Add formatter happy-path tests (document/selection formatting, join indentation, uppercase keywords) in `tests/SqlEssentials.Core.Tests/Formatting/SqlFormatterTests.cs`
-- [ ] T115d [P] [US6] Add odd-case tests (malformed SQL fallback, deeply nested subqueries, mixed whitespace styles) in `tests/SqlEssentials.Core.Tests/Formatting/SqlFormatterEdgeCaseTests.cs`
-- [ ] T115e [US6] Run US6-focused tests and verify all normal/odd scenarios pass before phase sign-off, then run post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`)
+- [X] T115c [P] [US6] Add formatter happy-path tests (document/selection formatting, join indentation, uppercase keywords) in `tests/SqlEssentials.Core.Tests/Formatting/SqlFormatterTests.cs`
+- [X] T115d [P] [US6] Add odd-case tests (malformed SQL fallback, deeply nested subqueries, mixed whitespace styles) in `tests/SqlEssentials.Core.Tests/Formatting/SqlFormatterEdgeCaseTests.cs`
+- [X] T115e [US6] Run US6-focused tests and verify all normal/odd scenarios pass before phase sign-off, then run post-test coverage gate (`pwsh scripts/quality/Verify-CoreCoverage.ps1`)
 
 ---
 

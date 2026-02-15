@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using SqlEssentials.Core.Completion;
 using SqlEssentials.Core.Context;
+using SqlEssentials.Core.Formatting;
 using SqlEssentials.Core.Logging;
 using SqlEssentials.Core.Metadata;
+using SqlEssentials.Extension.Commands;
 using SqlEssentials.Extension.Logging;
 
 namespace SqlEssentials.Extension
@@ -23,6 +25,7 @@ namespace SqlEssentials.Extension
         internal ISchemaCache SchemaCache { get; private set; }
         internal IContextAnalyzer ContextAnalyzer { get; private set; }
         internal ICompletionEngine CompletionEngine { get; private set; }
+        internal ISqlFormatter SqlFormatter { get; private set; }
         internal string CurrentConnectionKey { get; private set; }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -41,6 +44,11 @@ namespace SqlEssentials.Extension
             SchemaCache = new SchemaCache(new SmoMetadataLoader(Logger), Logger);
             ContextAnalyzer = new ContextAnalyzer(Logger);
             CompletionEngine = new CompletionEngine(ContextAnalyzer, SchemaCache, Logger);
+            SqlFormatter = new SqlFormatter(Logger);
+
+            await LogContentTypeCommand.InitializeAsync(this).ConfigureAwait(false);
+            await FormatDocumentCommand.InitializeAsync(this).ConfigureAwait(false);
+            await FormatSelectionCommand.InitializeAsync(this).ConfigureAwait(false);
 
             await InitializeConnectionEventsAsync(cancellationToken).ConfigureAwait(false);
         }

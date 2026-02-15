@@ -220,7 +220,7 @@ namespace SqlEssentials.Core.Snippets
                 Snippets = source.Select(ToDto).ToList()
             };
 
-            return JsonConvert.SerializeObject(payload, Formatting.Indented);
+            return JsonConvert.SerializeObject(payload, Newtonsoft.Json.Formatting.Indented);
         }
 
         public IReadOnlyList<ISnippet> ImportFromJson(string json)

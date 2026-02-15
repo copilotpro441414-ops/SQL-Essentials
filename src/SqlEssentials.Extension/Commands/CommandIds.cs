@@ -11,5 +11,7 @@ namespace SqlEssentials.Extension.Commands
 
         public const int RefreshSchema = 0x0100;
         public const int LogContentType = 0x0101;
+        public const int FormatDocument = 0x0102;
+        public const int FormatSelection = 0x0103;
     }
 }

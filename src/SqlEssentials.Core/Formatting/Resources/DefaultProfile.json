@@ -1,0 +1,13 @@
+{
+  "name": "Default",
+  "keywordCase": "Upper",
+  "indentStyle": "Spaces",
+  "indentSize": 4,
+  "commaPosition": "Trailing",
+  "joinOnNewLine": true,
+  "indentOnPredicate": true,
+  "selectColumnsOnSeparateLines": false,
+  "maxLineLength": 120,
+  "blankLineBeforeClauses": false,
+  "alignEquals": false
+}

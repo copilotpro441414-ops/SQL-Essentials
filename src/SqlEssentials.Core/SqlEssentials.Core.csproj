@@ -12,5 +12,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Snippets\Resources\BuiltInSnippets.json" />
+    <EmbeddedResource Include="Formatting\Resources\DefaultProfile.json" />
   </ItemGroup>
 </Project>
