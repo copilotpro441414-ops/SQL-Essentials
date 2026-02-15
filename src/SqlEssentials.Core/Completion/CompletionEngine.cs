@@ -194,6 +194,10 @@ namespace SqlEssentials.Core.Completion
         {
             // Deprecated: Use SuggestionScoringPolicy.CalculateScore instead
             // Kept temporarily for compatibility
+            if (suggestion == null)
+            {
+                throw new ArgumentNullException(nameof(suggestion));
+            }
             var policy = new SuggestionScoringPolicy();
             return policy.CalculateScore(suggestion, clause, typedToken);
         }
