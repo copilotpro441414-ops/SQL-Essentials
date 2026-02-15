@@ -10,8 +10,6 @@ Auto-generated from all feature plans. Last updated: 2026-02-04
 - C# 12 on .NET Framework 4.8 + xUnit 2.6.*, Moq 4.20.*, Microsoft.NET.Test.Sdk 17.*, ScriptDOM, SMO wrappers (003-add-unit-tests)
 - In-memory test fixtures and test doubles (no external storage) (003-add-unit-tests)
 
-- C# 7.3 / .NET Framework 4.8 + Microsoft.SqlServer.TransactSql.ScriptDom, Microsoft.SqlServer.Management.Smo, Microsoft.VisualStudio.Shell.15.0, Community.VisualStudio.Toolkit (1-smart-autocomplete)
-
 ## Project Structure
 
 ```text
