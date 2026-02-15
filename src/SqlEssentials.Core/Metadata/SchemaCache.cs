@@ -13,11 +13,13 @@ namespace SqlEssentials.Core.Metadata
         private readonly ConcurrentDictionary<string, DatabaseCache> _caches;
         private readonly SmoMetadataLoader _loader;
         private readonly ILogger _logger;
+        private readonly IClock _clock;
 
-        public SchemaCache(SmoMetadataLoader loader, ILogger logger = null)
+        public SchemaCache(SmoMetadataLoader loader, ILogger logger = null, IClock clock = null)
         {
             _loader = loader ?? throw new ArgumentNullException(nameof(loader));
             _logger = logger ?? NullLogger.Instance;
+            _clock = clock ?? SystemClock.Instance;
             _caches = new ConcurrentDictionary<string, DatabaseCache>(StringComparer.OrdinalIgnoreCase);
             TimeToLive = TimeSpan.FromMinutes(30);
         }
@@ -132,7 +134,7 @@ namespace SqlEssentials.Core.Metadata
 
         private bool IsExpired(DatabaseCache cache)
         {
-            return (DateTimeOffset.UtcNow - cache.LastRefreshed) > TimeToLive;
+            return (_clock.UtcNow - cache.LastRefreshed) > TimeToLive;
         }
 
         private void UpdateStatus(string connectionKey, CacheStatus oldStatus, CacheStatus newStatus)
