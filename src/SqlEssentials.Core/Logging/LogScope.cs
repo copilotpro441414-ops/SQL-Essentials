@@ -16,7 +16,7 @@ namespace SqlEssentials.Core.Logging
             string correlationId = null,
             IReadOnlyDictionary<string, object> properties = null)
         {
-            _logger = logger;
+            _logger = logger ?? NullLogger.Instance;
             Component = component;
             Operation = operation;
             CorrelationId = correlationId;

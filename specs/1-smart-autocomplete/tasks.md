@@ -201,7 +201,25 @@ Based on plan.md structure:
 
 ---
 
-## Phase 5: User Story 3 - Smart JOIN Predicate Suggestions (Priority: P2)
+## Phase 5: Unit Test Hardening (Pre-Phase-5 Insert)
+
+**Goal**: Insert and execute a dedicated core-only unit-testing phase before JOIN/snippet/formatting phases.
+
+**Independent Test**: Verify `specs/003-add-unit-tests/tasks.md` exists, is executable, and branch strategy is documented.
+
+- [X] T067f Add pre-phase-5 testing phase reference linking to `specs/003-add-unit-tests/tasks.md`
+- [X] T067g Update roadmap sequencing notes so this testing phase runs before JOIN work
+- [X] T067h Add branch strategy note: implement on dedicated testing branch, merge back only after green tests
+
+### Quality Gate Refinements (Phase 7 of 003-add-unit-tests)
+
+- [X] T067i Differentiate per-module coverage thresholds (Completion/Context=85%, Metadata=75/70%, Logging=75/70%)
+- [X] T067j Add mutation testing spot-check for SuggestionScoringPolicy (`stryker-config.json`, `scripts/quality/Run-MutationSpotCheck.ps1`)
+- [X] T067k Add test runtime budget enforcement script (`scripts/quality/Verify-TestRuntime.ps1`, 90s gate)
+
+---
+
+## Phase 6: User Story 3 - Smart JOIN Predicate Suggestions (Priority: P2)
 
 **Goal**: After `JOIN Orders o ON`, suggest `u.UserID = o.UserID` based on FK relationships
 
@@ -235,7 +253,7 @@ Based on plan.md structure:
 
 ---
 
-## Phase 6: User Story 4 - Keyword and Snippet Completion (Priority: P2)
+## Phase 7: User Story 4 - Keyword and Snippet Completion (Priority: P2)
 
 **Goal**: Suggest T-SQL keywords and expand snippet shortcuts with placeholder navigation
 
@@ -279,7 +297,7 @@ Based on plan.md structure:
 
 ---
 
-## Phase 7: User Story 6 - Basic SQL Formatting (Priority: P2)
+## Phase 8: User Story 6 - Basic SQL Formatting (Priority: P2)
 
 **Goal**: Format Document and Format Selection commands with uppercase keywords, proper indentation, JOINs on new lines
 
@@ -326,7 +344,7 @@ Based on plan.md structure:
 
 ---
 
-## Phase 8: User Story 7 - Custom Snippet Management (Priority: P3)
+## Phase 9: User Story 7 - Custom Snippet Management (Priority: P3)
 
 **Goal**: Settings UI for creating, editing, and managing custom snippets
 
@@ -357,7 +375,7 @@ Based on plan.md structure:
 
 ---
 
-## Phase 9: Polish & Cross-Cutting Concerns
+## Phase 10: Polish & Cross-Cutting Concerns
 
 **Purpose**: Telemetry, logging, settings, error handling, and final validation
 
@@ -402,10 +420,10 @@ Based on plan.md structure:
 
 - **Setup (Phase 1)**: No dependencies - can start immediately
 - **Foundational (Phase 2)**: Depends on Setup completion - **BLOCKS all user stories**
-- **User Stories (Phase 3-8)**: All depend only on Foundational phase completion
+- **User Stories (Phase 3-9)**: All depend only on Foundational phase completion
   - All P1/P2 stories can now proceed **in parallel** after Foundational
   - US7 (P3) requires US4 to be complete (SnippetManager dependency)
-- **Polish (Phase 9)**: Depends on all desired user stories being complete
+- **Polish (Phase 10)**: Depends on all desired user stories being complete
 
 ### User Story Dependencies (After Restructure)
 

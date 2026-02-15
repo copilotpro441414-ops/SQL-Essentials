@@ -80,10 +80,10 @@ namespace SqlEssentials.Core.Metadata
 
             return _foreignKeys
                 .Where(fk =>
-                    fk.ParentSchema.Equals(schemaName, StringComparison.OrdinalIgnoreCase) &&
-                    fk.ParentTable.Equals(tableName, StringComparison.OrdinalIgnoreCase) ||
-                    fk.ReferencedSchema.Equals(schemaName, StringComparison.OrdinalIgnoreCase) &&
-                    fk.ReferencedTable.Equals(tableName, StringComparison.OrdinalIgnoreCase))
+                    (fk.ParentSchema.Equals(schemaName, StringComparison.OrdinalIgnoreCase) &&
+                     fk.ParentTable.Equals(tableName, StringComparison.OrdinalIgnoreCase)) ||
+                    (fk.ReferencedSchema.Equals(schemaName, StringComparison.OrdinalIgnoreCase) &&
+                     fk.ReferencedTable.Equals(tableName, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
         }
 
