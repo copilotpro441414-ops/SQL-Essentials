@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using SqlEssentials.Core.Logging;
 using SqlEssentials.Core.Metadata;
 using SqlEssentials.Core.Models;
+using SqlEssentials.Core.Tests.Shared;
 using Xunit;
 
 namespace SqlEssentials.Core.Tests.Metadata
@@ -48,34 +49,6 @@ namespace SqlEssentials.Core.Tests.Metadata
 
             await Assert.ThrowsAsync<ArgumentNullException>(() => loader.LoadAsync(null));
             Assert.Contains(logger.Entries, entry => entry.Level == LogLevel.Error);
-        }
-
-        private sealed class RecordingLogger : ILogger
-        {
-            public System.Collections.Generic.List<(LogLevel Level, string Component, string Message)> Entries { get; }
-                = new System.Collections.Generic.List<(LogLevel, string, string)>();
-
-            public bool IsEnabled(LogLevel level) => level != LogLevel.Off;
-
-            public void Log(LogLevel level, string component, string message, Exception exception = null, System.Collections.Generic.IReadOnlyDictionary<string, object> properties = null, string correlationId = null)
-            {
-                Entries.Add((level, component, message));
-            }
-
-            public ILogScope BeginScope(string component, string operation, string correlationId = null, System.Collections.Generic.IReadOnlyDictionary<string, object> properties = null)
-            {
-                return NullScope.Instance;
-            }
-
-            private sealed class NullScope : ILogScope
-            {
-                public static readonly NullScope Instance = new NullScope();
-                public string Component => "Test";
-                public string Operation => "Op";
-                public string CorrelationId => null;
-                public TimeSpan Elapsed => TimeSpan.Zero;
-                public void Dispose() { }
-            }
         }
     }
 }
