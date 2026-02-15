@@ -45,7 +45,7 @@ if ($null -eq $strykerCmd) {
         Write-Host "Since Stryker is not available, verify test quality manually:"
         Write-Host ""
         Write-Host "1. Open src/SqlEssentials.Core/Completion/SuggestionScoringPolicy.cs"
-        Write-Host "2. Change 'score += prefixBonus' to 'score -= prefixBonus'"
+        Write-Host "2. Change 'score += 50' to 'score -= 50'"
         Write-Host "3. Run tests - expect at least one failure in SuggestionScoringPolicyTests"
         Write-Host "4. Revert the change"
         Write-Host ""
