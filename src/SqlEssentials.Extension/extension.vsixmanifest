@@ -6,6 +6,9 @@
     <Tags>SQL, SSMS, Autocomplete, IntelliSense</Tags>
   </Metadata>
   <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Ssms" Version="[17.0,18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,18.0)">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>

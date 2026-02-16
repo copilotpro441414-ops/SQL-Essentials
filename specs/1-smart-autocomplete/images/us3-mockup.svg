@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" font-family="'Segoe UI', sans-serif">
+  <!-- Editor Background -->
+  <rect width="600" height="400" fill="#1e1e1e" />
+  
+  <!-- Line Numbers -->
+  <text x="20" y="40" fill="#858585" font-family="Consolas" font-size="14">1</text>
+  <text x="20" y="65" fill="#858585" font-family="Consolas" font-size="14">2</text>
+  <text x="20" y="90" fill="#858585" font-family="Consolas" font-size="14">3</text>
+  
+  <!-- Code Content -->
+  <text x="50" y="40" font-family="Consolas" font-size="14">
+    <tspan fill="#569cd6">SELECT</tspan> <tspan fill="#d4d4d4">*</tspan>
+  </text>
+  <text x="50" y="65" font-family="Consolas" font-size="14">
+    <tspan fill="#569cd6">FROM</tspan> <tspan fill="#4ec9b0">Sales.Customers</tspan> <tspan fill="#d4d4d4">c</tspan>
+  </text>
+  <text x="50" y="90" font-family="Consolas" font-size="14">
+    <tspan fill="#569cd6">JOIN</tspan> <tspan fill="#4ec9b0">Sales.Orders</tspan> <tspan fill="#d4d4d4">o</tspan> <tspan fill="#569cd6">ON</tspan> |
+  </text>
+  
+  <!-- Cursor -->
+  <path d="M 230 78 L 230 94" stroke="#d4d4d4" stroke-width="2" />
+  
+  <!-- Completion Popup -->
+  <g transform="translate(230, 98)">
+    <rect width="320" height="80" fill="#252526" stroke="#454545" rx="3" />
+    
+    <!-- Item 1 (Selected - FK Match) -->
+    <rect x="0" y="0" width="320" height="25" fill="#094771" />
+    <text x="28" y="17" fill="#ffffff" font-size="12">c.CustomerID = o.CustomerID</text>
+    <text x="250" y="17" fill="#858585" font-size="11">Join</text>
+    <rect x="10" y="5" width="14" height="14" fill="#a0a0a0" opacity="0.8" /> <!-- Predicate Icon -->
+    
+    <!-- Item 2 (Name Match Fallback) -->
+    <text x="28" y="42" fill="#cccccc" font-size="12">c.LastEditedBy = o.LastEditedBy</text>
+    <text x="250" y="42" fill="#858585" font-size="11">Join</text>
+    <rect x="10" y="30" width="14" height="14" fill="#a0a0a0" opacity="0.8" />
+  </g>
+</svg>

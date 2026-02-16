@@ -55,7 +55,7 @@ namespace SqlEssentials.Core.Tests.Completion
             var result = await engine.GetCompletionsAsync(context.QueryText, context.CursorPosition, "conn-A", TriggerReason.Typing);
 
             Assert.DoesNotContain(result.Suggestions, s => s.Type == SuggestionType.JoinPredicate);
-            Assert.True(result.Suggestions.Any(s => s.Type == SuggestionType.Table || s.Type == SuggestionType.Column));
+            Assert.Contains(result.Suggestions, s => s.Type == SuggestionType.Table || s.Type == SuggestionType.Column);
         }
 
         private sealed class StubContextAnalyzer : IContextAnalyzer

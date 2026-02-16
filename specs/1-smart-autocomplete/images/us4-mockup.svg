@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" font-family="'Segoe UI', sans-serif">
+  <!-- Editor Background -->
+  <rect width="600" height="400" fill="#1e1e1e" />
+  
+  <!-- Line Numbers -->
+  <text x="20" y="40" fill="#858585" font-family="Consolas" font-size="14">1</text>
+  
+  <!-- Code Content -->
+  <text x="50" y="40" font-family="Consolas" font-size="14">
+    <tspan fill="#d4d4d4">ssf</tspan>|
+  </text>
+  
+  <!-- Cursor -->
+  <path d="M 80 28 L 80 44" stroke="#d4d4d4" stroke-width="2" />
+  
+  <!-- Completion Popup -->
+  <g transform="translate(80, 48)">
+    <rect width="300" height="150" fill="#252526" stroke="#454545" rx="3" />
+    
+    <!-- Item 1 (Selected - Snippet Match) -->
+    <rect x="0" y="0" width="300" height="25" fill="#094771" />
+    <text x="28" y="17" fill="#ffffff" font-size="12">ssf (SELECT * FROM...)</text>
+    <text x="220" y="17" fill="#858585" font-size="11">Snippet</text>
+    <rect x="10" y="5" width="14" height="14" fill="#6a9955" opacity="0.8" /> <!-- Snippet Icon -->
+    
+    <!-- Item 2 -->
+    <text x="28" y="42" fill="#cccccc" font-size="12">SCHEMA_ID</text>
+    <text x="220" y="42" fill="#858585" font-size="11">Function</text>
+    <rect x="10" y="30" width="14" height="14" fill="#dcdcaa" opacity="0.8" />
+  </g>
+  
+    <!-- Tooltip/Details -->
+  <g transform="translate(390, 48)">
+    <rect width="200" height="100" fill="#252526" stroke="#454545" rx="3" />
+    <text x="10" y="20" fill="#569cd6" font-size="12" font-weight="bold">ssf</text>
+    <text x="10" y="40" fill="#d4d4d4" font-size="12" font-family="Consolas">SELECT * </text>
+    <text x="10" y="55" fill="#d4d4d4" font-size="12" font-family="Consolas">FROM table</text>
+  </g>
+</svg>

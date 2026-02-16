@@ -2,12 +2,15 @@
   "profiles": {
     "SqlEssentials.Extension": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe\""
+      "commandLineArgs": "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe\"",
+      "environmentVariables": {
+        "SQL_ESSENTIALS_LOG_LEVEL": "Debug"
+      }
     },
     "Profile 1": {
       "commandName": "Executable",
       "executablePath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe",
-      "commandLineArgs": "/rootSuffix Exp",
+      "commandLineArgs": "/rootSuffix Exp\r\n",
       "workingDirectory": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\"
     }
   }
